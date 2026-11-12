@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 
 const RatholeSchema = new mongoose.Schema(
   {
-    numero: {
+    number: {
       type: Number,
       required: true,
       unique: true,
@@ -29,7 +29,7 @@ const RatholeSchema = new mongoose.Schema(
     },
     coOwner: {
       type: String,
-      default: 'Nenhum',
+      default: 'None',
       trim: true,
     },
     tp: {
@@ -44,8 +44,8 @@ const RatholeSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['ocupado', 'livre', 'aliado', 'em_raid', 'reserva'],
-      default: 'ocupado',
+      enum: ['occupied', 'free', 'ally', 'raiding', 'reserved'],
+      default: 'occupied',
     },
     notes: {
       type: String,

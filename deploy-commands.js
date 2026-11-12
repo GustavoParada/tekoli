@@ -92,6 +92,45 @@ const commands = [
     )
     .addSubcommand((sub) =>
       sub.setName('list').setDescription('List all registered ratholes and status')
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('update')
+        .setDescription('Admin role only: change a rathole field and save history')
+        .addIntegerOption((opt) =>
+          opt.setName('number').setDescription('Rathole number').setRequired(true)
+        )
+        .addStringOption((opt) =>
+          opt
+            .setName('field')
+            .setDescription('MongoDB field name')
+            .setRequired(true)
+            .addChoices(
+              { name: 'number', value: 'number' },
+              { name: 'name', value: 'name' },
+              { name: 'owner', value: 'owner' },
+              { name: 'coOwner', value: 'coOwner' },
+              { name: 'x', value: 'coords.x' },
+              { name: 'y', value: 'coords.y' },
+              { name: 'coords', value: 'coords' },
+              { name: 'tp', value: 'tp' },
+              { name: 'server', value: 'server' },
+              { name: 'status', value: 'status' },
+              { name: 'notes', value: 'notes' },
+              { name: 'turretsCount', value: 'turretsCount' },
+            )
+        )
+        .addStringOption((opt) =>
+          opt.setName('value').setDescription('New value. Status: occupied, free, ally, raiding, reserved').setRequired(true)
+        )
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('history')
+        .setDescription('Show recent rathole field changes')
+        .addIntegerOption((opt) =>
+          opt.setName('number').setDescription('Rathole number').setRequired(true)
+        )
     ),
   new SlashCommandBuilder()
     .setName('ajuda')

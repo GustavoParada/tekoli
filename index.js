@@ -26,6 +26,19 @@ const {
   linkDiscordUser,
   ensureKnownPeople,
 } = require('./lib/people');
+const { migrateRatholeEnglishNames } = require('./lib/migrate-ratholes');
+const {
+  looksLikeUpdate,
+  looksLikeHistory,
+  parseUpdateText,
+  parseHistoryText,
+  updateUsage,
+  historyUsage,
+  hasAdminRole,
+  formatValue,
+  applyRatholeUpdate,
+  listRatholeChanges,
+} = require('./lib/rathole-update');
 
 const EMBED_FIELD_LIMIT = 25;
 
@@ -49,8 +62,8 @@ function buildHelpEmbed() {
     .setColor(0x5865f2)
     .setDescription('You can ask in English (preferred) or Portuguese:')
     .addFields(
-      { name: 'Common Queries / Perguntas Comuns', value: '• "Who owns rathole 3?" / "A quem pertence o rathole 3?"\n• "Nearest ratholes to 14.9, 85.8" / "Próximo de 14.9, 85.8"\n• "what is Oli ratholes?" / "quais os ratholes do Oli"\n• "quais os ratholes do @Olimpikus" (usa o nome ligado à conta)\n• "owner Clutch" / "dono Clutch"\n• /rathole vincular para ligar sua conta Discord ao nome de owner\n• "responsible Joey" / "responsavel Joey"\n• "What is the TP for rathole 1?" / "Qual o TP do rathole 1?"' },
-      { name: 'Slash Commands', value: '/rathole info <number>\n/rathole owner <player> (or /rathole dono)\n/rathole responsible <player> (or /rathole responsavel)\n/rathole near <x> <y> (or /rathole proximo)\n/rathole list (or /rathole listar)\n/rathole vincular <nome> (or /rathole link)' }
+      { name: 'Common Queries / Perguntas Comuns', value: '• "Who owns rathole 3?" / "A quem pertence o rathole 3?"\n• "Nearest ratholes to 14.9, 85.8" / "Próximo de 14.9, 85.8"\n• "what is Oli ratholes?" / "quais os ratholes do Oli"\n• "quais os ratholes do @Olimpikus" (usa o nome ligado à conta)\n• "owner Clutch" / "dono Clutch"\n• /rathole vincular para ligar sua conta Discord ao nome de owner\n• "responsible Joey" / "responsavel Joey"\n• "What is the TP for rathole 1?" / "Qual o TP do rathole 1?"\n• "update 3 owner Clutch" (role admin) / "history 3"' },
+      { name: 'Slash Commands', value: '/rathole info <number>\n/rathole owner <player> (or /rathole dono)\n/rathole responsible <player> (or /rathole responsavel)\n/rathole near <x> <y> (or /rathole proximo)\n/rathole list (or /rathole listar)\n/rathole vincular <nome> (or /rathole link)\n/rathole update <number> <field> <value> (role admin)\n/rathole history <number>' }
     );
 }
 
@@ -66,17 +79,17 @@ function addLimitedFields(embed, items, toField) {
 }
 
 async function buildNumeroPayload(targetNumero) {
-  const rh = await Rathole.findOne({ numero: targetNumero });
+  const rh = await Rathole.findOne({ number: targetNumero });
 
   if (!rh) {
     return { content: `🔍 O **Rathole #${targetNumero}** não foi encontrado na base de dados MongoDB.` };
   }
 
-  const color = rh.status === 'ocupado' ? 0x5865f2 : rh.status === 'livre' ? 0x57f287 : 0xed4245;
+  const color = rh.status === 'occupied' ? 0x5865f2 : rh.status === 'free' ? 0x57f287 : 0xed4245;
 
   const embed = new EmbedBuilder()
-    .setTitle(`🏰 Informações do Rathole #${rh.numero} • ${rh.name}`)
-    .setDescription(`Aqui estão os dados completos do **Rathole #${rh.numero}**:`)
+    .setTitle(`🏰 Informações do Rathole #${rh.number} • ${rh.name}`)
+    .setDescription(`Aqui estão os dados completos do **Rathole #${rh.number}**:`)
     .setColor(color)
     .addFields(
       { name: '👑 Owner Principal', value: `**${rh.owner}**`, inline: true },
@@ -93,7 +106,7 @@ async function buildNumeroPayload(targetNumero) {
     embed.addFields({ name: '📝 Notas Táticas', value: rh.notes, inline: false });
   }
 
-  const responseText = `🏰 O **Rathole #${rh.numero}** pertence a **${rh.owner}** (Co-Owner: **${rh.coOwner}**)!\n📍 Coordenadas: (${rh.coords.x.toFixed(1)}, ${rh.coords.y.toFixed(1)}) | ⚡ TP: ${rh.tp}`;
+  const responseText = `🏰 O **Rathole #${rh.number}** pertence a **${rh.owner}** (Co-Owner: **${rh.coOwner}**)!\n📍 Coordenadas: (${rh.coords.x.toFixed(1)}, ${rh.coords.y.toFixed(1)}) | ⚡ TP: ${rh.tp}`;
 
   return { content: responseText, embeds: [embed] };
 }
@@ -124,13 +137,13 @@ async function buildProximityPayload(targetX, targetY) {
   ranked.forEach((item, index) => {
     const r = item.rathole;
     embed.addFields({
-      name: `${index === 0 ? '⭐ Mais Próximo: ' : ''}#${r.numero} - ${r.name} [${item.dist.toFixed(1)}m]`,
+      name: `${index === 0 ? '⭐ Mais Próximo: ' : ''}#${r.number} - ${r.name} [${item.dist.toFixed(1)}m]`,
       value: `👑 **Owner:** ${r.owner}\n🛡️ **Co-Owner:** ${r.coOwner}\n📍 **Coordenadas:** (${r.coords.x.toFixed(1)}, ${r.coords.y.toFixed(1)})\n⚡ **TP:** ${r.tp}  *(Console: /tp ${r.coords.x.toFixed(1)} ${r.coords.y.toFixed(1)})*\n🏷️ **Status:** ${r.status.toUpperCase()}`,
     });
   });
 
   return {
-    content: `📡 **Radar TEKOli:** Os ratholes mais próximos de **(${targetX.toFixed(1)}, ${targetY.toFixed(1)})** foram localizados! O mais próximo é o **Rathole #${nearest.numero}** (${nearest.name}) a **${ranked[0].dist.toFixed(1)}m**, pertencente a **${nearest.owner}** com TP ${nearest.tp}.`,
+    content: `📡 **Radar TEKOli:** Os ratholes mais próximos de **(${targetX.toFixed(1)}, ${targetY.toFixed(1)})** foram localizados! O mais próximo é o **Rathole #${nearest.number}** (${nearest.name}) a **${ranked[0].dist.toFixed(1)}m**, pertencente a **${nearest.owner}** com TP ${nearest.tp}.`,
     embeds: [embed],
   };
 }
@@ -146,7 +159,7 @@ async function buildPersonPayload(nameTarget, ownerOnly) {
     ? { owner: regex }
     : { $or: [{ owner: regex }, { coOwner: regex }] };
 
-  const matches = await Rathole.find(query).sort({ numero: 1 });
+  const matches = await Rathole.find(query).sort({ number: 1 });
   const filterTitle = ownerOnly ? '👑 Dono (Owner Principal)' : '👥 Responsável (Owner e Co-Owner)';
 
   if (matches.length === 0) {
@@ -160,7 +173,7 @@ async function buildPersonPayload(nameTarget, ownerOnly) {
     .setTimestamp();
 
   addLimitedFields(embed, matches, (rh) => ({
-    name: `#${rh.numero} - ${rh.name}`,
+    name: `#${rh.number} - ${rh.name}`,
     value: `👑 **Owner:** ${rh.owner}\n🛡️ **Co-Owner:** ${rh.coOwner}\n📍 **Coords:** (${rh.coords.x.toFixed(1)}, ${rh.coords.y.toFixed(1)})\n⚡ **TP:** ${rh.tp}`,
   }));
 
@@ -172,7 +185,7 @@ async function buildPersonPayload(nameTarget, ownerOnly) {
 }
 
 async function buildFreePayload() {
-  const free = await Rathole.find({ status: 'livre' });
+  const free = await Rathole.find({ status: 'free' });
   if (free.length === 0) {
     return { content: '🛡️ No ratholes currently free. All are occupied or on reserve.' };
   }
@@ -183,7 +196,7 @@ async function buildFreePayload() {
     .setDescription('Open positions available for clan members or expansion:');
 
   addLimitedFields(embed, free, (r) => ({
-    name: `#${r.numero} - ${r.name}`,
+    name: `#${r.number} - ${r.name}`,
     value: `📍 Coords: (${r.coords.x}, ${r.coords.y}) | ⚡ TP: ${r.tp}`,
   }));
 
@@ -191,7 +204,7 @@ async function buildFreePayload() {
 }
 
 async function buildListPayload() {
-  const all = await Rathole.find({}).sort({ numero: 1 });
+  const all = await Rathole.find({}).sort({ number: 1 });
   if (all.length === 0) {
     return { content: '❌ Nenhum rathole cadastrado na base MongoDB.' };
   }
@@ -202,9 +215,53 @@ async function buildListPayload() {
     .setTimestamp();
 
   addLimitedFields(embed, all, (rh) => ({
-    name: `#${rh.numero} - ${rh.name}`,
+    name: `#${rh.number} - ${rh.name}`,
     value: `👑 **Owner:** ${rh.owner}\n🛡️ **Co-Owner:** ${rh.coOwner}\n📍 (${rh.coords.x.toFixed(1)}, ${rh.coords.y.toFixed(1)})\n⚡ **TP:** ${rh.tp}\n🏷️ **Status:** ${rh.status.toUpperCase()}`,
   }));
+
+  return { embeds: [embed] };
+}
+
+function buildUpdateReply(result) {
+  const lines = result.changes.map((change) => (
+    `**${change.field}:** ${formatValue(change.previousValue)} → ${formatValue(change.newValue)}`
+  ));
+  const embed = new EmbedBuilder()
+    .setTitle(`Rathole #${result.rathole.number} updated`)
+    .setColor(0x57f287)
+    .setDescription(lines.join('\n'))
+    .setFooter({ text: `TEKOli • rathole_changes • ${result.changedByName}` })
+    .setTimestamp();
+
+  const saved = result.historyError
+    ? `Updated **Rathole #${result.rathole.number}**. The rathole changed, but the history record failed.`
+    : `Updated **Rathole #${result.rathole.number}**. Saved in \`rathole_changes\`.`;
+  return { content: saved, embeds: [embed] };
+}
+
+async function buildHistoryPayload(ratholeNumber) {
+  const { rathole, changes } = await listRatholeChanges(ratholeNumber, 10);
+  if (changes.length === 0) {
+    return { content: `No changes recorded for rathole #${ratholeNumber}.` };
+  }
+
+  const embed = new EmbedBuilder()
+    .setTitle(`Rathole #${ratholeNumber} change history`)
+    .setColor(0x5865f2)
+    .setFooter({ text: 'TEKOli • rathole_changes' })
+    .setTimestamp();
+
+  if (!rathole) {
+    embed.setDescription(`Rathole #${ratholeNumber} is no longer in the database. Showing saved changes.`);
+  }
+
+  changes.forEach((change) => {
+    const when = change.createdAt ? change.createdAt.toISOString().slice(0, 16).replace('T', ' ') : '';
+    embed.addFields({
+      name: `${change.field} • ${when} UTC`,
+      value: `${formatValue(change.previousValue)} → ${formatValue(change.newValue)}\nby **${change.changedByName}**`,
+    });
+  });
 
   return { embeds: [embed] };
 }
@@ -268,7 +325,10 @@ async function logMongoInventory() {
   const collections = await db.db.listCollections().toArray();
   const names = collections.map((item) => item.name);
   const count = names.includes('ratholes') ? await Rathole.estimatedDocumentCount() : 0;
-  console.log(`[TEKOli] Mongo host=${db.host} banco="${db.name}" coleção ratholes=${count}`);
+  const changes = names.includes('rathole_changes')
+    ? await db.db.collection('rathole_changes').estimatedDocumentCount()
+    : 0;
+  console.log(`[TEKOli] Mongo host=${db.host} banco="${db.name}" coleção ratholes=${count} rathole_changes=${changes}`);
   console.log(`[TEKOli] Coleções neste banco: ${names.join(', ') || '(nenhuma)'}`);
   if (count === 0 && names.length > 0) {
     console.warn('[TEKOli] A coleção "ratholes" está vazia ou não existe. O bot só lê essa coleção, neste banco.');
@@ -279,7 +339,7 @@ function startMongo() {
   const uri = cleanEnv('MONGODB_URI');
   if (!uri) {
     console.error('[TEKOli] MONGODB_URI ausente. O bot sobe no Discord, mas as consultas vão falhar.');
-    return;
+    return Promise.resolve();
   }
 
   let connectUri = uri;
@@ -299,9 +359,14 @@ function startMongo() {
   mongoose.connection.on('reconnected', () => console.log('[TEKOli] MongoDB reconectou.'));
   mongoose.connection.on('error', (err) => console.error('[TEKOli] Erro do MongoDB:', err.message));
 
-  mongoose.connect(connectUri)
+  return mongoose.connect(connectUri)
     .then(async () => {
       console.log('[TEKOli] Conectado ao MongoDB.');
+      try {
+        await migrateRatholeEnglishNames();
+      } catch (err) {
+        console.error('[TEKOli] Falha ao normalizar nomes em inglês no MongoDB:', err.message);
+      }
       await logMongoInventory();
       await ensureKnownPeople();
     })
@@ -381,6 +446,41 @@ client.on('messageCreate', async (message) => {
     return message.reply(isEn
       ? '👋 **Hey there, clanmate!** I am **TEKOli**, the tactical rathole bot. Ask me: *"Who owns rathole 3?"*, *"Nearest ratholes to 12, 20"*, or *"owner Clutch"*!'
       : '👋 **Salve, guerreiro!** Sou o **TEKOli**, o bot tático do clã. Pode me perguntar sobre ratholes, donos, coordenadas ou teleports!');
+  }
+
+  const addressed = content.replace(new RegExp(`<@!?${client.user.id}>`, 'g'), ' ');
+
+  if (looksLikeUpdate(addressed)) {
+    if (!hasAdminRole(message.member, message.guild)) {
+      return message.reply('Only members with the **admin** role can update ratholes. Só quem tem a role **admin** pode usar update.');
+    }
+    const parsed = parseUpdateText(addressed);
+    if (!parsed) return message.reply(updateUsage());
+    try {
+      const result = await applyRatholeUpdate({
+        number: parsed.number,
+        fieldInput: parsed.field,
+        rawValue: parsed.value,
+        user: message.author,
+      });
+      if (result.error) return message.reply(result.error);
+      console.log(`[TEKOli] Update rathole #${result.rathole.number} by ${message.author.tag}: ${result.changes.map((change) => change.field).join(', ')}`);
+      return message.reply(buildUpdateReply(result));
+    } catch (err) {
+      console.error(err);
+      return message.reply('❌ Could not update the rathole in MongoDB.');
+    }
+  }
+
+  if (looksLikeHistory(addressed)) {
+    const historyNumber = parseHistoryText(addressed);
+    if (!historyNumber) return message.reply(historyUsage());
+    try {
+      return message.reply(await buildHistoryPayload(historyNumber));
+    } catch (err) {
+      console.error(err);
+      return message.reply('❌ Could not read rathole history from MongoDB.');
+    }
   }
 
   const proximityRegex = /(?:proximo|proximos|perto|vizinho)[\s\w]*?(?:de|a)?\s*\(?\s*(\d+(?:[.,]\d+)?)\s*(?:,|[ ]|e)\s*(\d+(?:[.,]\d+)?)\s*\)?/i;
@@ -523,10 +623,32 @@ client.on('interactionCreate', async (interaction) => {
       return interaction.reply(await buildListPayload());
     }
 
+    if (sub === 'update') {
+      if (!hasAdminRole(interaction.member, interaction.guild)) {
+        return interaction.reply({
+          content: 'Only members with the **admin** role can update ratholes. Só quem tem a role **admin** pode usar update.',
+          ephemeral: true,
+        });
+      }
+      const result = await applyRatholeUpdate({
+        number: interaction.options.getInteger('number', true),
+        fieldInput: interaction.options.getString('field', true),
+        rawValue: interaction.options.getString('value', true),
+        user: interaction.user,
+      });
+      if (result.error) return interaction.reply({ content: result.error, ephemeral: true });
+      console.log(`[TEKOli] Update rathole #${result.rathole.number} by ${interaction.user.tag}: ${result.changes.map((change) => change.field).join(', ')}`);
+      return interaction.reply(buildUpdateReply(result));
+    }
+
+    if (sub === 'history') {
+      return interaction.reply(await buildHistoryPayload(interaction.options.getInteger('number', true)));
+    }
+
     return interaction.reply({ content: 'Subcomando não reconhecido.', ephemeral: true });
   } catch (err) {
     console.error(err);
-    const content = '❌ Erro ao consultar ratholes no MongoDB.';
+    const content = '❌ Erro ao processar o comando no MongoDB.';
     if (interaction.replied || interaction.deferred) {
       return interaction.followUp({ content, ephemeral: true });
     }
@@ -534,7 +656,11 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-logStartup();
-startHealthServer();
-startMongo();
-startDiscord();
+async function main() {
+  logStartup();
+  startHealthServer();
+  await startMongo();
+  startDiscord();
+}
+
+main();
