@@ -72,6 +72,22 @@ const commands = [
         )
     )
     .addSubcommand((sub) =>
+      sub
+        .setName('vincular')
+        .setDescription('Liga sua conta Discord ao nome de owner usado nos ratholes')
+        .addStringOption((opt) =>
+          opt.setName('nome').setDescription('Nome de owner, como Oli').setRequired(true)
+        )
+    )
+    .addSubcommand((sub) =>
+      sub
+        .setName('link')
+        .setDescription('Link your Discord account to the owner name used on ratholes')
+        .addStringOption((opt) =>
+          opt.setName('name').setDescription('Owner name, such as Oli').setRequired(true)
+        )
+    )
+    .addSubcommand((sub) =>
       sub.setName('listar').setDescription('Lista todos os ratholes e status')
     )
     .addSubcommand((sub) =>

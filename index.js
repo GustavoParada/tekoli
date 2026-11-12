@@ -4,6 +4,7 @@
 // ============================================================================
 
 require('dotenv').config();
+const http = require('http');
 const {
   Client,
   GatewayIntentBits,
@@ -17,7 +18,14 @@ const {
   matchesKeyword,
   stripCommandPrefix,
   escapeRegex,
+  parseOwnerQuestion,
 } = require('./lib/text-commands');
+const {
+  ownerFromDiscordUser,
+  canonicalOwnerName,
+  linkDiscordUser,
+  ensureKnownPeople,
+} = require('./lib/people');
 
 const EMBED_FIELD_LIMIT = 25;
 
@@ -41,8 +49,8 @@ function buildHelpEmbed() {
     .setColor(0x5865f2)
     .setDescription('You can ask in English (preferred) or Portuguese:')
     .addFields(
-      { name: 'Common Queries / Perguntas Comuns', value: '• "Who owns rathole 3?" / "A quem pertence o rathole 3?"\n• "Nearest ratholes to 14.9, 85.8" / "Próximo de 14.9, 85.8"\n• "owner Clutch" / "dono Clutch"\n• "responsible Joey" / "responsavel Joey"\n• "What is the TP for rathole 1?" / "Qual o TP do rathole 1?"' },
-      { name: 'Slash Commands', value: '/rathole info <number>\n/rathole owner <player> (or /rathole dono)\n/rathole responsible <player> (or /rathole responsavel)\n/rathole near <x> <y> (or /rathole proximo)\n/rathole list (or /rathole listar)' }
+      { name: 'Common Queries / Perguntas Comuns', value: '• "Who owns rathole 3?" / "A quem pertence o rathole 3?"\n• "Nearest ratholes to 14.9, 85.8" / "Próximo de 14.9, 85.8"\n• "what is Oli ratholes?" / "quais os ratholes do Oli"\n• "quais os ratholes do @Olimpikus" (usa o nome ligado à conta)\n• "owner Clutch" / "dono Clutch"\n• /rathole vincular para ligar sua conta Discord ao nome de owner\n• "responsible Joey" / "responsavel Joey"\n• "What is the TP for rathole 1?" / "Qual o TP do rathole 1?"' },
+      { name: 'Slash Commands', value: '/rathole info <number>\n/rathole owner <player> (or /rathole dono)\n/rathole responsible <player> (or /rathole responsavel)\n/rathole near <x> <y> (or /rathole proximo)\n/rathole list (or /rathole listar)\n/rathole vincular <nome> (or /rathole link)' }
     );
 }
 
@@ -201,21 +209,150 @@ async function buildListPayload() {
   return { embeds: [embed] };
 }
 
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log('🍃 [TEKOli] Conectado com sucesso ao MongoDB!'))
-  .catch((err) => console.error('❌ [TEKOli] Erro de conexão MongoDB:', err));
+function databaseNameFromUri(uri) {
+  try {
+    const normalized = uri.replace(/^mongodb(\+srv)?:\/\//, 'http://');
+    const name = decodeURIComponent(new URL(normalized).pathname.replace(/^\//, '').split('/')[0] || '');
+    return name || null;
+  } catch (err) {
+    return null;
+  }
+}
 
-client.once('ready', () => {
-  console.log(`🤖 [TEKOli] Bot online como ${client.user.tag}!`);
-  client.user.setActivity('ARK / Rust • Radar de Ratholes', { type: 0 });
+function envFlag(name) {
+  const value = process.env[name];
+  if (value == null || value.trim() === '') return 'AUSENTE';
+  return 'definido';
+}
+
+function cleanEnv(name) {
+  const raw = process.env[name] || '';
+  const trimmed = raw.trim();
+  const unquoted = trimmed.replace(/^['"]|['"]$/g, '');
+  if (trimmed !== unquoted) {
+    console.warn(`[TEKOli] ${name} estava entre aspas. As aspas foram removidas.`);
+  }
+  return unquoted;
+}
+
+function startHealthServer() {
+  const port = Number(process.env.PORT) || 8080;
+  const server = http.createServer((req, res) => {
+    const mongoStates = ['desconectado', 'conectado', 'conectando', 'desconectando'];
+    const payload = {
+      ok: true,
+      discord: client.isReady() ? 'online' : 'offline',
+      user: client.user ? client.user.tag : null,
+      mongo: mongoStates[mongoose.connection.readyState] || String(mongoose.connection.readyState),
+      database: mongoose.connection.name || null,
+    };
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(payload));
+  });
+
+  server.listen(port, () => {
+    console.log(`[TEKOli] Health check na porta ${port}. O App Service usa essa porta para manter o processo no ar.`);
+  });
+  server.on('error', (err) => {
+    console.error(`[TEKOli] Não foi possível abrir a porta ${port}: ${err.message}`);
+  });
+}
+
+function logStartup() {
+  console.log(`[TEKOli] Processo iniciado. Node ${process.version}. PORT=${process.env.PORT || '(não definido, usando 8080)'}`);
+  console.log(`[TEKOli] DISCORD_TOKEN: ${envFlag('DISCORD_TOKEN')} | CLIENT_ID: ${envFlag('CLIENT_ID')} | MONGODB_URI: ${envFlag('MONGODB_URI')}`);
+}
+
+async function logMongoInventory() {
+  const db = mongoose.connection;
+  const collections = await db.db.listCollections().toArray();
+  const names = collections.map((item) => item.name);
+  const count = names.includes('ratholes') ? await Rathole.estimatedDocumentCount() : 0;
+  console.log(`[TEKOli] Mongo host=${db.host} banco="${db.name}" coleção ratholes=${count}`);
+  console.log(`[TEKOli] Coleções neste banco: ${names.join(', ') || '(nenhuma)'}`);
+  if (count === 0 && names.length > 0) {
+    console.warn('[TEKOli] A coleção "ratholes" está vazia ou não existe. O bot só lê essa coleção, neste banco.');
+  }
+}
+
+function startMongo() {
+  const uri = cleanEnv('MONGODB_URI');
+  if (!uri) {
+    console.error('[TEKOli] MONGODB_URI ausente. O bot sobe no Discord, mas as consultas vão falhar.');
+    return;
+  }
+
+  let connectUri = uri;
+  const databaseName = databaseNameFromUri(uri);
+  if (!databaseName) {
+    const queryIndex = uri.indexOf('?');
+    const base = queryIndex === -1 ? uri : uri.slice(0, queryIndex);
+    const query = queryIndex === -1 ? '' : uri.slice(queryIndex);
+    const withSlash = base.endsWith('/') ? base : `${base}/`;
+    connectUri = `${withSlash}tekoli_db${query}`;
+    console.warn('[TEKOli] MONGODB_URI sem nome de banco. Usando tekoli_db.');
+  } else {
+    console.log(`[TEKOli] Banco pedido na URI: "${databaseName}"`);
+  }
+
+  mongoose.connection.on('disconnected', () => console.warn('[TEKOli] MongoDB desconectou.'));
+  mongoose.connection.on('reconnected', () => console.log('[TEKOli] MongoDB reconectou.'));
+  mongoose.connection.on('error', (err) => console.error('[TEKOli] Erro do MongoDB:', err.message));
+
+  mongoose.connect(connectUri)
+    .then(async () => {
+      console.log('[TEKOli] Conectado ao MongoDB.');
+      await logMongoInventory();
+      await ensureKnownPeople();
+    })
+    .catch((err) => console.error('[TEKOli] Erro de conexão MongoDB:', err.message));
+}
+
+function startDiscord() {
+  const token = cleanEnv('DISCORD_TOKEN');
+  if (!token) {
+    console.error('[TEKOli] DISCORD_TOKEN ausente. O bot permanece offline.');
+    return;
+  }
+
+  client.once('ready', () => {
+    const guilds = [...client.guilds.cache.values()].map((guild) => `${guild.name} (${guild.id})`);
+    console.log(`[TEKOli] Bot online como ${client.user.tag}. Servidores: ${guilds.join(', ') || '(nenhum — o bot não foi convidado)'}`);
+    client.user.setActivity('ARK / Rust • Radar de Ratholes', { type: 0 });
+  });
+
+  client.on('error', (err) => console.error('[TEKOli] Erro do cliente Discord:', err.message));
+  client.on('warn', (message) => console.warn('[TEKOli] Aviso do Discord:', message));
+  client.on('shardError', (err) => console.error('[TEKOli] Erro de conexão com o gateway:', err.message));
+  client.on('shardDisconnect', (event, shardId) => {
+    console.warn(`[TEKOli] Gateway desconectou. shard=${shardId} code=${event?.code} reason=${event?.reason || ''}`);
+  });
+  client.on('shardReconnecting', (shardId) => console.warn(`[TEKOli] Gateway reconectando. shard=${shardId}`));
+  client.on('shardResume', (shardId, replayed) => console.log(`[TEKOli] Gateway retomou. shard=${shardId} eventos=${replayed}`));
+
+  console.log('[TEKOli] Pedindo login no Discord...');
+  client.login(token).catch((err) => {
+    console.error('[TEKOli] Falha no login do Discord:', err.message);
+    if (/disallowed intent/i.test(err.message)) {
+      console.error('[TEKOli] Ligue Message Content Intent em Discord Developer Portal → Bot → Privileged Gateway Intents.');
+    }
+  });
+}
+
+process.on('unhandledRejection', (err) => {
+  console.error('[TEKOli] Promise rejeitada:', err instanceof Error ? err.message : err);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[TEKOli] Exceção não tratada:', err.message);
 });
 
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
+  if (!client.user || !message.mentions.users.has(client.user.id)) return;
 
   const content = message.content.trim();
   const lower = content.toLowerCase();
+  console.log(`[TEKOli] Mensagem de ${message.author.tag} em #${message.channel?.name || message.channelId}: ${content.slice(0, 80)}`);
 
   if (content.length < 2) return;
 
@@ -285,11 +422,39 @@ client.on('messageCreate', async (message) => {
     }
   }
 
+  const mentioned = [...message.mentions.users.values()].filter((user) => user.id !== client.user.id);
+  if (mentioned.length === 1 && /rathole/i.test(content)) {
+    const member = message.mentions.members?.get(mentioned[0].id);
+    const linkedOwner = await ownerFromDiscordUser(mentioned[0], member);
+    console.log(`[TEKOli] Menção ${mentioned[0].username} → owner ${linkedOwner || '(sem vínculo)'}`);
+    if (!linkedOwner) {
+      return message.reply(`Não sei qual owner corresponde a **${mentioned[0].username}**. A pessoa pode ligar a conta com \`/rathole vincular\`.`);
+    }
+    try {
+      return message.reply(await buildPersonPayload(linkedOwner, true));
+    } catch (err) {
+      console.error(err);
+      return message.reply('❌ Erro ao consultar ratholes no MongoDB.');
+    }
+  }
+
+  const ownerFromQuestion = parseOwnerQuestion(content);
+  if (ownerFromQuestion) {
+    const linkedOwner = await canonicalOwnerName(ownerFromQuestion);
+    console.log(`[TEKOli] Pergunta lida como owner: ${ownerFromQuestion} → ${linkedOwner}`);
+    try {
+      return message.reply(await buildPersonPayload(linkedOwner, true));
+    } catch (err) {
+      console.error(err);
+      return message.reply('❌ Erro ao consultar ratholes no MongoDB.');
+    }
+  }
+
   const isDonoCmd = matchesKeyword(lower, DONO_KEYWORDS);
   const isRespCmd = matchesKeyword(lower, RESP_KEYWORDS);
 
   if (isDonoCmd || isRespCmd) {
-    const nameTarget = stripCommandPrefix(content, isDonoCmd ? DONO_KEYWORDS : RESP_KEYWORDS);
+    const nameTarget = await canonicalOwnerName(stripCommandPrefix(content, isDonoCmd ? DONO_KEYWORDS : RESP_KEYWORDS));
     try {
       return message.reply(await buildPersonPayload(nameTarget, isDonoCmd));
     } catch (err) {
@@ -315,6 +480,9 @@ client.on('messageCreate', async (message) => {
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
+  const subcommand = interaction.options.getSubcommand(false);
+  console.log(`[TEKOli] Slash /${interaction.commandName}${subcommand ? ` ${subcommand}` : ''} por ${interaction.user.tag} em ${interaction.guild?.name || 'DM'}`);
+
   try {
     if (interaction.commandName === 'ajuda' || interaction.commandName === 'help') {
       return interaction.reply({ embeds: [buildHelpEmbed()] });
@@ -336,12 +504,18 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     if (sub === 'dono' || sub === 'owner') {
-      const name = interaction.options.getString('jogador') || interaction.options.getString('player');
+      const name = await canonicalOwnerName(interaction.options.getString('jogador') || interaction.options.getString('player'));
       return interaction.reply(await buildPersonPayload(name, true));
     }
 
+    if (sub === 'vincular' || sub === 'link') {
+      const ownerName = interaction.options.getString('nome') || interaction.options.getString('name');
+      const person = await linkDiscordUser(interaction.user, ownerName);
+      return interaction.reply(`Liguei **${interaction.user.username}** ao owner **${person.ownerName}**. Uma menção a essa conta passa a buscar os ratholes desse nome.`);
+    }
+
     if (sub === 'responsavel' || sub === 'responsible') {
-      const name = interaction.options.getString('jogador') || interaction.options.getString('player');
+      const name = await canonicalOwnerName(interaction.options.getString('jogador') || interaction.options.getString('player'));
       return interaction.reply(await buildPersonPayload(name, false));
     }
 
@@ -360,4 +534,7 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-client.login(process.env.DISCORD_TOKEN);
+logStartup();
+startHealthServer();
+startMongo();
+startDiscord();
