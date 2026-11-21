@@ -1,0 +1,6 @@
+{
+  "name": "TEKOli - Discord Bot & MongoDB Ratholes Intel Hub",
+  "description": "Painel tático e bot Discord TEKOli integrado com MongoDB para gestão de Ratholes, cálculo de proximidade por coordenadas (xx,yy), donos, co-owners e teleports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
