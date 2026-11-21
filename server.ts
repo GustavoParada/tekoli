@@ -47,6 +47,27 @@ app.use(
 let memoryRatholes: Rathole[] = [...INITIAL_RATHOLES];
 let mongoConnected = false;
 
+function ratholeFromMongo(doc: Record<string, any>): Rathole {
+  const numero = Number(doc.numero ?? doc.number);
+  return {
+    id: String(doc.id || doc._id || `rh-${numero}`),
+    numero,
+    name: doc.name || `Rathole #${numero}`,
+    coords: {
+      x: Number(doc.coords?.x ?? 0),
+      y: Number(doc.coords?.y ?? 0),
+    },
+    owner: doc.owner || 'None',
+    coOwner: doc.coOwner || 'None',
+    tp: doc.tp || '',
+    server: doc.server || '',
+    status: doc.status || 'occupied',
+    notes: doc.notes || '',
+    turretsCount: doc.turretsCount,
+    updatedAt: doc.updatedAt || new Date().toISOString(),
+  };
+}
+
 async function getActiveRatholes(): Promise<Rathole[]> {
   const mongoUri = process.env.MONGODB_URI?.trim();
   if (!mongoUri) {
@@ -67,11 +88,14 @@ async function getActiveRatholes(): Promise<Rathole[]> {
     if (count === 0 && memoryRatholes.length > 0) {
       await col.insertMany(memoryRatholes.map((r) => ({ ...r })));
     }
-    const docs = await col.find({}).sort({ numero: 1 }).toArray();
+    const docs = await col.find({}).toArray();
     await client.close();
     mongoConnected = true;
     if (docs.length > 0) {
-      memoryRatholes = docs as unknown as Rathole[];
+      memoryRatholes = docs
+        .map((doc) => ratholeFromMongo(doc))
+        .filter((rh) => Number.isFinite(rh.numero))
+        .sort((a, b) => a.numero - b.numero);
     }
     return memoryRatholes;
   } catch (err) {
@@ -126,7 +150,10 @@ async function updateRatholeInStore(
     if (count === 0 && memoryRatholes.length > 0) {
       await col.insertMany(memoryRatholes.map((r) => ({ ...r })));
     } else {
-      await col.updateOne({ numero }, { $set: payload });
+      await col.updateOne(
+        { $or: [{ numero }, { number: numero }] },
+        { $set: { ...payload, numero, number: numero } }
+      );
     }
     await client.close();
     mongoConnected = true;
@@ -1163,17 +1190,24 @@ app.post('/api/mongodb/sync', async (req: Request, res: Response) => {
 
     if (action === 'push') {
       for (const rh of ratholes) {
-        await col.updateOne({ numero: rh.numero }, { $set: rh }, { upsert: true });
+        await col.updateOne(
+          { $or: [{ numero: rh.numero }, { number: rh.numero }] },
+          { $set: { ...rh, numero: rh.numero, number: rh.numero } },
+          { upsert: true }
+        );
       }
       memoryRatholes = ratholes;
       const count = await col.countDocuments();
       await client.close();
       res.json({ success: true, message: `${ratholes.length} ratholes sincronizados no MongoDB!`, count });
     } else {
-      const docs = await col.find({}).sort({ numero: 1 }).toArray();
+      const docs = (await col.find({}).toArray())
+        .map((doc) => ratholeFromMongo(doc))
+        .filter((rh) => Number.isFinite(rh.numero))
+        .sort((a, b) => a.numero - b.numero);
       await client.close();
       if (docs.length > 0) {
-        memoryRatholes = docs as unknown as Rathole[];
+        memoryRatholes = docs;
       }
       res.json({ success: true, ratholes: docs });
     }
