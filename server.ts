@@ -31,7 +31,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(
   express.json({
@@ -1234,7 +1234,7 @@ app.post('/api/discord/webhook', async (req: Request, res: Response) => {
 
 // Vite middleware in dev or static files in production
 async function startServer() {
-  const isProd = process.env.NODE_ENV === 'production';
+  const isProd = process.env.NODE_ENV === 'production' || Boolean(process.env.WEBSITE_SITE_NAME);
 
   if (!isProd) {
     const { createServer: createViteServer } = await import('vite');

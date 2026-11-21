@@ -55,6 +55,15 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_454E1B4C8C0F4967A9807ABEFDC29119 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_39D363DA167C495CB35D72C1CF87AA5B }}
 
+      - name: Start the new server on App Service
+        run: |
+          RG=$(az webapp list --query "[?name=='tekoli'].resourceGroup | [0]" -o tsv)
+          if [ -z "$RG" ]; then
+            echo "App Service tekoli was not found in this subscription."
+            exit 1
+          fi
+          az webapp config set --name tekoli --resource-group "$RG" --startup-file "npm start"
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
