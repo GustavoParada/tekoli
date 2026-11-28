@@ -20,9 +20,10 @@ const LAT_SCALE = 9.0325;
 
 type MapFrame = { left: number; top: number; width: number; height: number; cw: number; ch: number };
 
-function gameToPercent(x: number, y: number, frame: MapFrame) {
-  const px = LON_ORIGIN + x * LON_SCALE;
-  const py = LAT_ORIGIN + y * LAT_SCALE;
+/** First value is latitude (top → bottom). Second value is longitude (left → right). */
+function gameToPercent(lat: number, lon: number, frame: MapFrame) {
+  const px = LON_ORIGIN + lon * LON_SCALE;
+  const py = LAT_ORIGIN + lat * LAT_SCALE;
   const absX = frame.left + (px / MAP_W) * frame.width;
   const absY = frame.top + (py / MAP_H) * frame.height;
   const left = frame.cw > 0 ? (absX / frame.cw) * 100 : 0;
@@ -134,12 +135,12 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
 
     const px = ((clickX - frame.left) / frame.width) * MAP_W;
     const py = ((clickY - frame.top) / frame.height) * MAP_H;
-    const gameX = (px - LON_ORIGIN) / LON_SCALE;
-    const gameY = (py - LAT_ORIGIN) / LAT_SCALE;
+    const lon = (px - LON_ORIGIN) / LON_SCALE;
+    const lat = (py - LAT_ORIGIN) / LAT_SCALE;
 
     setTargetCoords({
-      x: parseFloat(Math.max(0, Math.min(100, gameX)).toFixed(1)),
-      y: parseFloat(Math.max(0, Math.min(100, gameY)).toFixed(1)),
+      x: parseFloat(Math.max(0, Math.min(100, lat)).toFixed(1)),
+      y: parseFloat(Math.max(0, Math.min(100, lon)).toFixed(1)),
     });
     setActivePin(null);
   };
@@ -189,7 +190,7 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                 </span>
               </h2>
               <p className="text-xs text-zinc-400">
-                Click anywhere on the map. Pins use the same grid printed on the map.
+                Click the map. First number is latitude (left side), second is longitude (top).
               </p>
             </div>
           </div>
@@ -418,10 +419,10 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
 
                   {/* Pin badge */}
                   <div
-                    className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs shadow-lg transition border ${
+                    className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[9px] leading-none shadow-lg transition border ${
                       isSelected
                         ? 'ring-2 ring-white scale-110'
-                        : 'border-white/20'
+                        : 'border-white/40'
                     }`}
                     style={{
                       backgroundColor: color,
@@ -429,7 +430,7 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                     }}
                     title={`#${rh.numero} ${rh.name} (${rh.coords.x}, ${rh.coords.y})`}
                   >
-                    #{rh.numero}
+                    {rh.numero}
                   </div>
 
                   {/* Pin label tooltip */}

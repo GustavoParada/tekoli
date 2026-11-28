@@ -371,7 +371,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
             <thead>
               <tr className="bg-zinc-950/80 border-b border-zinc-800 text-zinc-400 font-semibold uppercase tracking-wider text-[11px]">
                 <th className="py-3 px-4"># / Name</th>
-                <th className="py-3 px-4">Coordinates (x, y)</th>
+                <th className="py-3 px-4">Lat, Lon</th>
                 <th className="py-3 px-4">👑 Primary Owner</th>
                 <th className="py-3 px-4">🛡️ Co-Owner</th>
                 <th className="py-3 px-4">⚡ Teleport (TP)</th>

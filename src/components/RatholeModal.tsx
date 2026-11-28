@@ -157,7 +157,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-emerald-400" />
-                Map coordinates (0.0 to 100.0) — same grid as the radar map
+                GPS (latitude, longitude) — same order as the radar map
               </span>
               <span className="text-xs text-zinc-400 font-mono">
                 GPS: ({Number(coordX).toFixed(1)}, {Number(coordY).toFixed(1)})
@@ -165,7 +165,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">X — left to right (top numbers):</label>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1">Latitude — top to bottom (left numbers):</label>
                 <input
                   type="number"
                   step="0.1"
@@ -178,7 +178,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">Y — top to bottom (left numbers):</label>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1">Longitude — left to right (top numbers):</label>
                 <input
                   type="number"
                   step="0.1"
