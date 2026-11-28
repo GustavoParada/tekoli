@@ -173,11 +173,11 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-full w-full bg-zinc-950 overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-full w-full bg-zinc-950 overflow-y-auto lg:overflow-hidden">
       {/* Left / Top Radar Controls & Map View */}
-      <div className="flex-1 flex flex-col p-4 md:p-6 min-h-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col p-3 min-h-[78vh] lg:min-h-0 lg:h-full min-w-0">
         {/* Top Control Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 bg-zinc-900/90 border border-zinc-800 p-3.5 rounded-2xl">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2 shrink-0 bg-zinc-900/90 border border-zinc-800 p-2.5 rounded-2xl">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
               <Crosshair className="w-5 h-5 animate-spin-slow" />
@@ -230,7 +230,7 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
         </div>
 
         {/* Radar Search & Dono vs Responsável Filter */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3 px-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2 shrink-0 px-1">
           <div className="flex items-center gap-2 flex-1 min-w-[260px]">
             <input
               type="text"
@@ -316,7 +316,7 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
         )}
 
         {/* Map Container */}
-        <div className="relative flex-1 min-h-[460px] md:min-h-[520px] bg-[#071820] border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="relative flex-1 min-h-[68vh] lg:min-h-0 bg-[#071820] border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
           <div
             ref={containerRef}
             onClick={handleMapClick}
@@ -465,7 +465,7 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
       </div>
 
       {/* Right Radar HUD / Intel Panel */}
-      <div className="w-full lg:w-96 bg-zinc-900/95 border-t lg:border-t-0 lg:border-l border-zinc-800 flex flex-col p-4 md:p-6 overflow-y-auto">
+      <div className="w-full lg:w-80 xl:w-96 shrink-0 max-h-[46vh] lg:max-h-none lg:h-full bg-zinc-900/95 border-t lg:border-t-0 lg:border-l border-zinc-800 flex flex-col p-4 overflow-y-auto">
         {/* HUD Header */}
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
           <div className="flex items-center gap-2">
