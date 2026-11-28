@@ -3,22 +3,16 @@ import {
   Bot,
   Compass,
   Database,
-  Terminal,
   Volume2,
   VolumeX,
   Plus,
-  Shield,
-  Layers,
-  Sparkles,
-  ExternalLink,
   MessageSquare,
 } from 'lucide-react';
 import { Rathole, DiscordMessage } from './types/rathole';
 import { INITIAL_RATHOLES } from './data/defaultRatholes';
 import { DiscordSimulator } from './components/DiscordSimulator';
 import { TacticalRadarMap } from './components/TacticalRadarMap';
-import { RatholeManager } from './components/RatholeManager';
-import { BotCodeExporter, BotRuntimeStatus } from './components/BotCodeExporter';
+import { BotRuntimeStatus } from './components/BotCodeExporter';
 import { RatholeModal } from './components/RatholeModal';
 import { MongoConfigModal } from './components/MongoConfigModal';
 
@@ -36,7 +30,7 @@ export default function App() {
   });
 
   // Active Main Tab
-  const [activeTab, setActiveTab] = useState<'discord' | 'radar' | 'database' | 'bot_code'>('discord');
+  const [activeTab, setActiveTab] = useState<'discord' | 'radar'>('radar');
 
   // Audio Notification Toggle
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -185,19 +179,6 @@ export default function App() {
     });
   };
 
-  const handleDeleteRathole = (id: string) => {
-    setRatholes((prev) => {
-      const next = prev.filter((r) => r.id !== id);
-      syncListToServer(next);
-      return next;
-    });
-  };
-
-  const handleResetDefaults = () => {
-    setRatholes(INITIAL_RATHOLES);
-    syncListToServer(INITIAL_RATHOLES);
-  };
-
   // Quick navigation helper
   const handleNavigateToRadar = (coords?: { x: number; y: number }) => {
     setActiveTab('radar');
@@ -284,18 +265,6 @@ export default function App() {
         {/* Navigation Tabs */}
         <div className="flex items-center gap-1 bg-zinc-900 p-1 rounded-xl border border-zinc-800">
           <button
-            onClick={() => setActiveTab('discord')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-              activeTab === 'discord'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
-            }`}
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Discord Simulator</span>
-          </button>
-
-          <button
             onClick={() => setActiveTab('radar')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
               activeTab === 'radar'
@@ -308,47 +277,31 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setActiveTab('database')}
+            onClick={() => setActiveTab('discord')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-              activeTab === 'database'
+              activeTab === 'discord'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
             }`}
           >
-            <Database className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Rathole Database</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-zinc-800 text-zinc-300 font-mono">
-              {ratholes.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('bot_code')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-              activeTab === 'bot_code'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
-            }`}
-          >
-            <Terminal className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden md:inline">Deploy & Code</span>
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Discord Simulator</span>
           </button>
         </div>
 
         {/* Right Action Tools */}
         <div className="flex items-center gap-2">
           {/* Real Discord Gateway Status Button */}
-          <button
-            onClick={() => setActiveTab('bot_code')}
-            className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 border transition ${
+          <div
+            className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 border ${
               botStatus?.online
-                ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/50'
-                : 'bg-rose-950/40 border-rose-500/40 text-rose-300 hover:bg-rose-900/50'
+                ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300'
+                : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
             }`}
             title={
               botStatus?.online
-                ? `TEKOli Online no Discord (${botStatus.botTag})`
-                : 'Bot is offline on Discord — click to see how to bring it online'
+                ? `TEKOli is online on Discord (${botStatus.botTag})`
+                : 'Bot is offline on Discord'
             }
           >
             <span
@@ -359,7 +312,7 @@ export default function App() {
             <span className="hidden xl:inline">
               {botStatus?.online ? `Discord Online (${botStatus.guildsCount})` : 'Discord Offline'}
             </span>
-          </button>
+          </div>
 
           <button
             onClick={() => {
@@ -425,32 +378,6 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'database' && (
-          <RatholeManager
-            ratholes={ratholes}
-            onOpenCreateModal={() => {
-              setEditingRathole(null);
-              setIsRatholeModalOpen(true);
-            }}
-            onEditRathole={(rh) => {
-              setEditingRathole(rh);
-              setIsRatholeModalOpen(true);
-            }}
-            onDeleteRathole={handleDeleteRathole}
-            onOpenMongoConfig={() => setIsMongoModalOpen(true)}
-            onAskInDiscord={handleAskInDiscord}
-            onNavigateToRadar={handleNavigateToRadar}
-            onResetDefaults={handleResetDefaults}
-            onImportJson={(imported) => {
-              setRatholes(imported);
-              syncListToServer(imported);
-            }}
-          />
-        )}
-
-        {activeTab === 'bot_code' && (
-          <BotCodeExporter botStatus={botStatus} onRefreshStatus={fetchBotStatus} />
-        )}
       </main>
 
       {/* Modal: New / Edit Rathole */}
