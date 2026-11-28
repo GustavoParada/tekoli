@@ -21,6 +21,20 @@ const LAT_SCALE = 9.0325;
 type MapFrame = { left: number; top: number; width: number; height: number; cw: number; ch: number };
 
 /** First value is latitude (top → bottom). Second value is longitude (left → right). */
+function videoMoments(notes?: string): { label: string; url: string }[] {
+  if (!notes) return [];
+  const seen = new Set<string>();
+  const moments: { label: string; url: string }[] = [];
+  const pattern = /\[(\d{1,2}:\d{2}(?::\d{2})?)\]\((https?:\/\/[^)\s]+)\)/g;
+  for (const match of notes.matchAll(pattern)) {
+    const url = match[2];
+    if (seen.has(url)) continue;
+    seen.add(url);
+    moments.push({ label: match[1], url });
+  }
+  return moments;
+}
+
 function gameToPercent(lat: number, lon: number, frame: MapFrame) {
   const px = LON_ORIGIN + lon * LON_SCALE;
   const py = LAT_ORIGIN + lat * LAT_SCALE;
@@ -513,10 +527,11 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
             <span className="text-[10px] text-zinc-500 font-normal">2D Euclidean distance</span>
           </h4>
 
-          {nearest.map((item, index) => {
+          {nearest.map((item) => {
             const rh = item.rathole;
             const isSelected = activePin?.id === rh.id;
             const color = getStatusColor(rh.status);
+            const moments = videoMoments(rh.notes);
 
             return (
               <div
@@ -589,6 +604,26 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                       )}
                     </button>
                   </div>
+                  {moments.length > 0 && (
+                    <div className="flex items-start justify-between gap-2 pt-1">
+                      <span className="text-zinc-500 text-[11px] shrink-0">▶ Video:</span>
+                      <span className="flex flex-wrap justify-end gap-1">
+                        {moments.map((moment) => (
+                          <a
+                            key={moment.url}
+                            href={moment.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="px-1.5 py-0.5 rounded bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/30 text-[10px] font-mono"
+                            title={`Open the video at ${moment.label}`}
+                          >
+                            {moment.label}
+                          </a>
+                        ))}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Quick ask button */}
