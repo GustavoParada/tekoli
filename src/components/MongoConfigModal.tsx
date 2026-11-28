@@ -48,7 +48,7 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
     if (!mongoUri.trim()) {
       setTestResult({
         success: false,
-        message: 'Por favor, insira a URI de conexão do MongoDB (ex: mongodb+srv://...).',
+        message: 'Enter a MongoDB connection URI (e.g. mongodb+srv://...).',
       });
       return;
     }
@@ -71,19 +71,19 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
       if (data.success) {
         setTestResult({
           success: true,
-          message: `Conexão bem sucedida! Banco: "${data.database}", Coleção: "${data.collection}"`,
+          message: `Connected. Database: "${data.database}", collection: "${data.collection}"`,
           docCount: data.documentCount,
         });
       } else {
         setTestResult({
           success: false,
-          message: data.error || 'Falha ao conectar no MongoDB. Verifique credenciais e IP Whitelist.',
+          message: data.error || 'Could not connect to MongoDB. Check the credentials and IP whitelist.',
         });
       }
     } catch (err: any) {
       setTestResult({
         success: false,
-        message: `Erro na requisição: ${err.message}`,
+        message: `Request failed: ${err.message}`,
       });
     } finally {
       setTesting(false);
@@ -92,12 +92,12 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
 
   const handlePushToMongo = async () => {
     if (!mongoUri.trim()) {
-      setSyncStatus('⚠️ Configure a URI do MongoDB primeiro antes de sincronizar.');
+      setSyncStatus('⚠️ Set the MongoDB URI before syncing.');
       return;
     }
 
     setSyncing(true);
-    setSyncStatus('Enviando dados para o MongoDB...');
+    setSyncStatus('Sending data to MongoDB...');
 
     try {
       const res = await fetch('/api/mongodb/sync', {
@@ -114,12 +114,12 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
       const data = await res.json();
 
       if (data.success) {
-        setSyncStatus(`✅ ${ratholes.length} ratholes sincronizados no MongoDB com sucesso!`);
+        setSyncStatus(`✅ ${ratholes.length} ratholes synced to MongoDB.`);
       } else {
-        setSyncStatus(`❌ Erro ao enviar: ${data.error}`);
+        setSyncStatus(`❌ Upload failed: ${data.error}`);
       }
     } catch (err: any) {
-      setSyncStatus(`❌ Erro: ${err.message}`);
+      setSyncStatus(`❌ Error: ${err.message}`);
     } finally {
       setSyncing(false);
     }
@@ -127,12 +127,12 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
 
   const handlePullFromMongo = async () => {
     if (!mongoUri.trim()) {
-      setSyncStatus('⚠️ Configure a URI do MongoDB primeiro antes de baixar.');
+      setSyncStatus('⚠️ Set the MongoDB URI before downloading.');
       return;
     }
 
     setSyncing(true);
-    setSyncStatus('Buscando ratholes do MongoDB...');
+    setSyncStatus('Loading ratholes from MongoDB...');
 
     try {
       const res = await fetch('/api/mongodb/sync', {
@@ -149,7 +149,7 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
 
       if (data.success && Array.isArray(data.ratholes)) {
         if (data.ratholes.length === 0) {
-          setSyncStatus('⚠️ Coleção vazia no MongoDB. Use "Enviar para o MongoDB" para popular.');
+          setSyncStatus('⚠️ The MongoDB collection is empty. Use "Upload ratholes to MongoDB" to fill it.');
         } else {
           // Normalize ids
           const normalized = data.ratholes.map((r: any) => ({
@@ -167,13 +167,13 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
             updatedAt: r.updatedAt || new Date().toISOString(),
           }));
           onRatholesUpdate(normalized);
-          setSyncStatus(`✅ ${normalized.length} ratholes importados do MongoDB para o painel!`);
+          setSyncStatus(`✅ Imported ${normalized.length} ratholes from MongoDB.`);
         }
       } else {
-        setSyncStatus(`❌ Erro: ${data.error || 'Nenhum dado retornado'}`);
+        setSyncStatus(`❌ Error: ${data.error || 'No data returned'}`);
       }
     } catch (err: any) {
-      setSyncStatus(`❌ Erro ao buscar: ${err.message}`);
+      setSyncStatus(`❌ Failed to load: ${err.message}`);
     } finally {
       setSyncing(false);
     }
@@ -190,10 +190,10 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
             </div>
             <div>
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                Conexão MongoDB • TEKOli Bot
+                MongoDB connection • TEKOli Bot
               </h3>
               <p className="text-xs text-zinc-400">
-                Conecte a base de dados real do seu bot para persistência e consultas ao vivo
+                Connect the bot's real database for persistence and live queries
               </p>
             </div>
           </div>
@@ -211,8 +211,8 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
           <div className="p-3.5 bg-emerald-950/30 border border-emerald-500/20 rounded-xl flex items-start gap-3">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1.5 shrink-0 animate-pulse" />
             <div className="text-xs text-zinc-300">
-              <span className="font-semibold text-emerald-400">Modo Híbrido Ativo: </span>
-              Se nenhuma URI for fornecida, o painel roda com o banco local persistido em memória/localStorage com 10 ratholes prontos. Ao inserir sua URI do MongoDB Atlas, você pode testar e sincronizar diretamente!
+              <span className="font-semibold text-emerald-400">Hybrid mode: </span>
+              With no URI, the panel keeps a local database in memory and localStorage. Paste a MongoDB Atlas URI to test and sync.
             </div>
           </div>
 
@@ -229,12 +229,12 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
                 className="text-[11px] text-indigo-400 hover:underline flex items-center gap-1"
               >
                 <HelpCircle className="w-3 h-3" />
-                {showTutorial ? 'Ocultar Tutorial' : 'Como obter URI grátis?'}
+                {showTutorial ? 'Hide tutorial' : 'How do I get a free URI?'}
               </button>
             </label>
             <input
               type="password"
-              placeholder="mongodb+srv://usuario:senha@cluster0.abcde.mongodb.net/?retryWrites=true&w=majority"
+              placeholder="mongodb+srv://user:password@cluster0.abcde.mongodb.net/?retryWrites=true&w=majority"
               value={mongoUri}
               onChange={(e) => {
                 setMongoUri(e.target.value);
@@ -243,7 +243,7 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
               className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-700 rounded-xl text-white font-mono text-xs focus:outline-none focus:border-emerald-500 placeholder-zinc-600"
             />
             <p className="text-[11px] text-zinc-500">
-              Sua senha e credenciais permanecem salvas apenas no seu navegador ou enviadas com segurança ao testar a conexão.
+              Your password stays in this browser, or is sent only when you test the connection.
             </p>
           </div>
 
@@ -251,15 +251,15 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
           <div className="p-3.5 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                🌐 Qual IP liberar no MongoDB Atlas (Network Access)?
+                🌐 Which IP should MongoDB Atlas allow?
               </span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium">
-                Recomendado
+                Recommended
               </span>
             </div>
 
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Como este painel e o bot de Discord rodam em ambiente de nuvem (Google Cloud) com IPs dinâmicos, o IP correto e padrão para colocar no MongoDB Atlas é:
+              This panel and the Discord bot run in the cloud with changing IPs. Allow this address in MongoDB Atlas:
             </p>
 
             <div className="flex items-center gap-2 pt-1">
@@ -270,34 +270,34 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
                 type="button"
                 onClick={() => {
                   navigator.clipboard.writeText('0.0.0.0/0');
-                  setSyncStatus('📋 "0.0.0.0/0" copiado! Cole em Network Access no MongoDB Atlas.');
+                  setSyncStatus('📋 Copied "0.0.0.0/0". Paste it into Network Access in MongoDB Atlas.');
                   setTimeout(() => setSyncStatus(null), 3000);
                 }}
                 className="px-2.5 py-1.5 bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 rounded-lg text-xs transition font-medium"
               >
-                Copiar 0.0.0.0/0
+                Copy 0.0.0.0/0
               </button>
               <span className="text-[11px] text-zinc-500">
-                (Opção <em>"Allow Access from Anywhere"</em> no Atlas)
+                (Atlas option <em>"Allow Access from Anywhere"</em>)
               </span>
             </div>
 
             <div className="text-[11px] text-zinc-500 pt-1 border-t border-zinc-800/80">
-              🔒 <strong>Segurança:</strong> O acesso ao banco continua 100% protegido pelo seu usuário, senha forte do MongoDB e criptografia TLS/SSL.
+              🔒 <strong>Security:</strong> The database stays protected by your MongoDB user, a strong password, and TLS/SSL.
             </div>
           </div>
 
           {showTutorial && (
             <div className="p-4 bg-zinc-950 border border-indigo-500/30 rounded-xl text-xs text-zinc-300 space-y-2">
               <h4 className="font-bold text-indigo-400 flex items-center gap-1.5">
-                📖 Como criar um MongoDB Atlas Grátis (M0 Free Tier):
+                📖 Create a free MongoDB Atlas cluster (M0):
               </h4>
               <ol className="list-decimal list-inside space-y-1 text-zinc-400">
-                <li>Acesse <strong>mongodb.com/atlas</strong> e crie uma conta gratuita.</li>
-                <li>Crie um cluster <strong>M0 (Free)</strong> selecionando qualquer região próxima (ex: São Paulo ou Virgínia).</li>
-                <li>Em <strong>Database Access</strong>, crie um usuário com senha simples.</li>
-                <li>Em <strong>Network Access</strong>, adicione <code className="bg-zinc-800 px-1 py-0.5 rounded text-amber-300">0.0.0.0/0</code> (Allow Access from Anywhere).</li>
-                <li>Clique em <strong>Connect &gt; Drivers (Node.js)</strong> e copie a connection string!</li>
+                <li>Go to <strong>mongodb.com/atlas</strong> and create a free account.</li>
+                <li>Create an <strong>M0 (Free)</strong> cluster in any nearby region.</li>
+                <li>In <strong>Database Access</strong>, create a user and password.</li>
+                <li>In <strong>Network Access</strong>, add <code className="bg-zinc-800 px-1 py-0.5 rounded text-amber-300">0.0.0.0/0</code> (Allow Access from Anywhere).</li>
+                <li>Click <strong>Connect &gt; Drivers (Node.js)</strong> and copy the connection string.</li>
               </ol>
             </div>
           )}
@@ -307,7 +307,7 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
             <div>
               <label className="block text-xs font-semibold text-zinc-300 mb-1 flex items-center gap-1.5">
                 <Server className="w-3.5 h-3.5 text-zinc-400" />
-                Nome do Banco (Database)
+                Database name
               </label>
               <input
                 type="text"
@@ -320,7 +320,7 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
             <div>
               <label className="block text-xs font-semibold text-zinc-300 mb-1 flex items-center gap-1.5">
                 <Database className="w-3.5 h-3.5 text-zinc-400" />
-                Nome da Coleção (Collection)
+                Collection name
               </label>
               <input
                 type="text"
@@ -336,7 +336,7 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
           <div className="space-y-1.5 pt-2 border-t border-zinc-800">
             <label className="block text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
               <span className="text-indigo-400">#</span>
-              Discord Webhook URL (Opcional - para enviar pings reais no seu servidor Discord)
+              Discord webhook URL (optional — post real pings to your Discord server)
             </label>
             <input
               type="text"
@@ -361,7 +361,7 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
                 ) : (
                   <CheckCircle2 className="w-3.5 h-3.5" />
                 )}
-                {testing ? 'Testando Conexão...' : 'Testar Conexão MongoDB'}
+                {testing ? 'Testing connection...' : 'Test MongoDB connection'}
               </button>
 
               <button
@@ -369,10 +369,10 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
                 onClick={handlePushToMongo}
                 disabled={syncing || !mongoUri}
                 className="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-200 rounded-lg text-xs font-medium flex items-center gap-1.5 transition border border-zinc-700"
-                title="Salva os ratholes atuais nesta tela dentro da coleção MongoDB"
+                title="Saves the ratholes on this screen into the MongoDB collection"
               >
                 <Upload className="w-3.5 h-3.5 text-indigo-400" />
-                Enviar Ratholes para MongoDB ({ratholes.length})
+                Upload ratholes to MongoDB ({ratholes.length})
               </button>
 
               <button
@@ -380,10 +380,10 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
                 onClick={handlePullFromMongo}
                 disabled={syncing || !mongoUri}
                 className="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-200 rounded-lg text-xs font-medium flex items-center gap-1.5 transition border border-zinc-700"
-                title="Substitui os ratholes do painel pelos que estão salvos no MongoDB"
+                title="Replaces the panel ratholes with the ones stored in MongoDB"
               >
                 <Download className="w-3.5 h-3.5 text-emerald-400" />
-                Carregar do MongoDB
+                Load from MongoDB
               </button>
             </div>
 
@@ -404,7 +404,7 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
                   <p className="font-semibold">{testResult.message}</p>
                   {testResult.docCount !== undefined && (
                     <p className="text-[11px] text-zinc-400 mt-0.5">
-                      Total de documentos na coleção: <strong className="text-white">{testResult.docCount}</strong>
+                      Documents in the collection: <strong className="text-white">{testResult.docCount}</strong>
                     </p>
                   )}
                 </div>
@@ -425,7 +425,7 @@ export const MongoConfigModal: React.FC<MongoConfigModalProps> = ({
             onClick={onClose}
             className="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-md transition"
           >
-            Concluir & Fechar
+            Done
           </button>
         </div>
       </div>

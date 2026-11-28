@@ -68,23 +68,23 @@ export default function App() {
         avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80',
         isBot: true,
         tag: 'BOT',
-        role: 'Bot Oficial',
+        role: 'Official Bot',
         color: '#5865F2',
       },
       content:
-        '👋 Fala guerreiros! Eu sou o **TEKOli**, o bot oficial do clã conectado ao MongoDB.\n\nA base consolidada de **Ratholes da Tribo** foi carregada! Estou pronto para responder perguntas como:\n• *"A quem pertence o rathole 3?"*\n• *"Qual os ratholes próximo de 14.9, 85.8?"*\n• *"Ratholes do Clutch"*\n• *"Qual o TP do rathole 1?"*',
+        '👋 Hey warriors! I am **TEKOli**, the clan\'s official bot connected to MongoDB.\n\nThe tribe **rathole database** is loaded. Ask me things like:\n• *"Who owns rathole 3?"*\n• *"Nearest ratholes to 14.9, 85.8"*\n• *"Clutch\'s ratholes"*\n• *"What is the TP for rathole 1?"*',
       embed: {
-        title: '🏰 Sistema Tático TEKOli • Lista da Tribo Carregada',
-        description: 'Todos os ratholes da tribo estão catalogados no MongoDB com número, coordenadas GPS (xx, yy), owner, co-owner e comando de TP.',
+        title: '🏰 TEKOli Tactical System • Tribe List Loaded',
+        description: 'Every tribe rathole is catalogued in MongoDB with a number, GPS coordinates (x, y), owner, co-owner, and TP command.',
         color: '#5865F2',
         fields: [
-          { name: '👑 Rathole #3', value: 'Pertence a **Beno** (Co: **Joey**)\nCoords: `(14.9, 85.8)`\nTP: `TP-RH-03`', inline: true },
-          { name: '📍 Exemplo Proximidade', value: 'Próximos de (14.9, 85.8): #3, #2 (ASTE), #1 (DAB), #4 (Clutch)', inline: true },
-          { name: '🛡️ Membros Registrados', value: 'DAB, Beno, Joey, Clutch, Oli, ASTE, Coeus, Prin, Howess, khacis, etc.', inline: true },
+          { name: '👑 Rathole #3', value: 'Owned by **Beno** (Co: **Joey**)\nCoords: `(14.9, 85.8)`\nTP: `TP-RH-03`', inline: true },
+          { name: '📍 Proximity example', value: 'Near (14.9, 85.8): #3, #2 (ASTE), #1 (DAB), #4 (Clutch)', inline: true },
+          { name: '🛡️ Registered members', value: 'DAB, Beno, Joey, Clutch, Oli, ASTE, Coeus, Prin, Howess, khacis, and others.', inline: true },
         ],
-        footer: { text: 'TEKOli Bot • Lista Consolidada da Tribo' },
+        footer: { text: 'TEKOli Bot • Consolidated tribe list' },
       },
-      timestamp: 'Hoje às 11:00',
+      timestamp: 'Today at 11:00',
     },
   ]);
 
@@ -213,11 +213,11 @@ export default function App() {
           name: 'Gustavo Parada',
           avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
           isBot: false,
-          role: 'Líder do Clã',
+          role: 'Clan Leader',
           color: '#f59e0b',
         },
         content: question,
-        timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, userMsg]);
 
@@ -233,12 +233,12 @@ export default function App() {
             avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80',
             isBot: true,
             tag: 'BOT',
-            role: 'Bot Oficial',
+            role: 'Official Bot',
             color: '#5865F2',
           },
           content: res.content,
           embed: res.embed,
-          timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prev) => [...prev, botMsg]);
       }, 400);
@@ -275,7 +275,7 @@ export default function App() {
               <span className="text-zinc-600">•</span>
               <span className="text-emerald-400 font-mono text-[10px] flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {mongoUri ? 'MongoDB Conectado' : 'MongoDB Local Ativo'}
+                {mongoUri ? 'MongoDB Connected' : 'Local MongoDB Active'}
               </span>
             </div>
           </div>
@@ -292,7 +292,7 @@ export default function App() {
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Simulador Discord</span>
+            <span className="hidden sm:inline">Discord Simulator</span>
           </button>
 
           <button
@@ -304,7 +304,7 @@ export default function App() {
             }`}
           >
             <Compass className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Radar Tático</span>
+            <span className="hidden sm:inline">Tactical Radar</span>
           </button>
 
           <button
@@ -316,7 +316,7 @@ export default function App() {
             }`}
           >
             <Database className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Banco de Ratholes</span>
+            <span className="hidden sm:inline">Rathole Database</span>
             <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-zinc-800 text-zinc-300 font-mono">
               {ratholes.length}
             </span>
@@ -331,7 +331,7 @@ export default function App() {
             }`}
           >
             <Terminal className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden md:inline">Deploy & Código</span>
+            <span className="hidden md:inline">Deploy & Code</span>
           </button>
         </div>
 
@@ -348,7 +348,7 @@ export default function App() {
             title={
               botStatus?.online
                 ? `TEKOli Online no Discord (${botStatus.botTag})`
-                : 'Bot offline no Discord — clique para ver como ativar'
+                : 'Bot is offline on Discord — click to see how to bring it online'
             }
           >
             <span
@@ -367,10 +367,10 @@ export default function App() {
               setIsRatholeModalOpen(true);
             }}
             className="px-2.5 py-1.5 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 rounded-lg text-xs font-medium flex items-center gap-1.5 transition"
-            title="Adicionar novo rathole ao banco"
+            title="Add a new rathole to the database"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline">Novo Rathole</span>
+            <span className="hidden lg:inline">New Rathole</span>
           </button>
 
           <button
@@ -380,7 +380,7 @@ export default function App() {
                 ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-400'
                 : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
             }`}
-            title="Configurar Conexão MongoDB"
+            title="Configure MongoDB connection"
           >
             <Database className="w-4 h-4" />
           </button>
@@ -388,7 +388,7 @@ export default function App() {
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
             className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition"
-            title={soundEnabled ? 'Silenciar alertas sonoros' : 'Ativar som de ping'}
+            title={soundEnabled ? 'Mute sound alerts' : 'Enable ping sound'}
           >
             {soundEnabled ? <Volume2 className="w-4 h-4 text-indigo-400" /> : <VolumeX className="w-4 h-4" />}
           </button>

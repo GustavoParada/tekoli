@@ -56,7 +56,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
   const handleCopyTp = (tp: string) => {
     navigator.clipboard.writeText(tp);
     setCopiedTp(tp);
-    showToast(`⚡ TP "${tp}" copiado para a área de transferência!`);
+    showToast(`⚡ TP "${tp}" copied to the clipboard!`);
     setTimeout(() => setCopiedTp(null), 2000);
   };
 
@@ -68,7 +68,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
-    showToast('📁 Arquivo JSON de ratholes exportado!');
+    showToast('📁 Rathole JSON file exported!');
   };
 
   const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,10 +80,10 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
         const parsed = JSON.parse(event.target?.result as string);
         if (Array.isArray(parsed)) {
           onImportJson(parsed);
-          showToast(`✅ ${parsed.length} ratholes importados com sucesso!`);
+          showToast(`✅ ${parsed.length} ratholes imported.`);
         }
       } catch (err: any) {
-        showToast('❌ Erro ao importar JSON: ' + err.message);
+        showToast('❌ Failed to import JSON: ' + err.message);
       }
     };
     reader.readAsText(file);
@@ -127,15 +127,15 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
     const normalized = String(status || '').toLowerCase();
     switch (normalized) {
       case 'ocupado':
-        return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">Ocupado</span>;
+        return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">Occupied</span>;
       case 'livre':
-        return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Livre</span>;
+        return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Open</span>;
       case 'em_raid':
-        return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30 animate-pulse">Em Raid</span>;
+        return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/30 animate-pulse">Under Raid</span>;
       case 'aliado':
-        return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">Aliado</span>;
+        return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">Ally</span>;
       case 'reserva':
-        return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">Reserva</span>;
+        return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30">Reserve</span>;
       case 'builded':
       case 'built':
         return <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-teal-500/15 text-teal-300 border border-teal-500/40">🏗️ Builded</span>;
@@ -160,7 +160,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
             <Shield className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-zinc-400">Total de Ratholes</div>
+            <div className="text-xs text-zinc-400">Total Ratholes</div>
             <div className="text-xl font-bold text-white font-mono">{ratholes.length}</div>
           </div>
         </div>
@@ -170,7 +170,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
             <Check className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-zinc-400">Vagas / Livres</div>
+            <div className="text-xs text-zinc-400">Open slots</div>
             <div className="text-xl font-bold text-emerald-400 font-mono">
               {ratholes.filter((r) => r.status === 'livre').length}
             </div>
@@ -182,7 +182,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
             <Zap className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-zinc-400">Em Raid / Alerta</div>
+            <div className="text-xs text-zinc-400">Under raid</div>
             <div className="text-xl font-bold text-rose-400 font-mono">
               {ratholes.filter((r) => r.status === 'em_raid').length}
             </div>
@@ -194,7 +194,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
             <Database className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-zinc-400">Coleção MongoDB</div>
+            <div className="text-xs text-zinc-400">MongoDB collection</div>
             <div className="text-sm font-bold text-amber-300 font-mono truncate">ratholes</div>
           </div>
         </div>
@@ -211,10 +211,10 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
                 type="text"
                 placeholder={
                   memberFilterMode === 'owner'
-                    ? '👑 Filtrando por OWNER (padrão)... ex: Clutch, Joey, #3'
+                    ? '👑 Filtering by OWNER (default)... e.g. Clutch, Joey, #3'
                     : memberFilterMode === 'co_owner'
-                    ? '🛡️ Filtrando apenas por CO-OWNER... ex: Joey, Gameron'
-                    : '👥 Filtrando por RESPONSÁVEL (Owner + Co-Owner)... ex: Joey, Oli'
+                    ? '🛡️ Filtering by CO-OWNER only... e.g. Joey, Gameron'
+                    : '👥 Filtering by OWNER + CO-OWNER... e.g. Joey, Oli'
                 }
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -236,7 +236,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
               onChange={(e) => setSearch(e.target.value)}
               className="px-2.5 py-2 bg-zinc-950 border border-zinc-700/80 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
             >
-              <option value="">Selecionar Jogador...</option>
+              <option value="">Select player...</option>
               {Array.from(
                 new Set(
                   ratholes
@@ -262,9 +262,9 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
                     ? 'bg-amber-600 text-white shadow-sm'
                     : 'text-amber-400/80 hover:text-amber-300'
                 }`}
-                title="Padrão: filtra estritamente por Owner principal"
+                title="Default: match the primary owner only"
               >
-                👑 Owner (Padrão)
+                👑 Owner (Default)
               </button>
               <button
                 type="button"
@@ -274,9 +274,9 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
                     ? 'bg-emerald-600 text-white shadow-sm'
                     : 'text-emerald-400/80 hover:text-emerald-300'
                 }`}
-                title="Filtra estritamente por Co-Owner"
+                title="Match co-owner only"
               >
-                🛡️ Só Co-Owner
+                🛡️ Co-Owner only
               </button>
               <button
                 type="button"
@@ -286,7 +286,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
                     ? 'bg-indigo-600 text-white shadow-sm'
                     : 'text-indigo-400/80 hover:text-indigo-300'
                 }`}
-                title="Filtra onde o jogador é Owner ou Co-Owner"
+                title="Match owner or co-owner"
               >
                 👥 Owner + Co-Owner
               </button>
@@ -300,29 +300,29 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
               className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-lg shadow-indigo-600/20"
             >
               <Plus className="w-4 h-4" />
-              Novo Rathole
+              New Rathole
             </button>
 
           <button
             onClick={onOpenMongoConfig}
             className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-medium flex items-center gap-1.5 transition"
-            title="Conectar ou sincronizar com MongoDB Atlas"
+            title="Connect or sync with MongoDB Atlas"
           >
             <Database className="w-4 h-4" />
-            Configurar MongoDB
+            Configure MongoDB
           </button>
 
           <button
             onClick={handleExportJson}
             className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl transition"
-            title="Exportar base como JSON"
+            title="Export database as JSON"
           >
             <Download className="w-4 h-4" />
           </button>
 
           <label
             className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl transition cursor-pointer"
-            title="Importar base de arquivo JSON"
+            title="Import database from a JSON file"
           >
             <Upload className="w-4 h-4" />
             <input type="file" accept=".json" onChange={handleImportFile} className="hidden" />
@@ -331,7 +331,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
           <button
             onClick={onResetDefaults}
             className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-rose-400 rounded-xl transition"
-            title="Restaurar dados padrão do clã"
+            title="Restore the clan's default data"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -343,7 +343,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
       {memberFilterMode === 'owner' && search.trim() && coOwnerExtraCount > 0 && (
         <div className="mb-4 px-4 py-2.5 bg-emerald-950/40 border border-emerald-500/30 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
           <span className="text-emerald-200">
-            🛡️ <strong>{search}</strong> também é <strong>Co-Owner</strong> em mais <strong>{coOwnerExtraCount}</strong> rathole(s). Deseja visualizar como Co-Owner também?
+            🛡️ <strong>{search}</strong> is also <strong>Co-Owner</strong> on <strong>{coOwnerExtraCount}</strong> more rathole(s). Show those as well?
           </span>
           <div className="flex items-center gap-2">
             <button
@@ -351,14 +351,14 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
               onClick={() => setMemberFilterMode('co_owner')}
               className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition"
             >
-              Ver Só Co-Owner ({coOwnerExtraCount})
+              Co-Owner only ({coOwnerExtraCount})
             </button>
             <button
               type="button"
               onClick={() => setMemberFilterMode('responsible')}
               className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition"
             >
-              Ver Owner + Co-Owner
+              Owner + Co-Owner
             </button>
           </div>
         </div>
@@ -370,14 +370,14 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-zinc-950/80 border-b border-zinc-800 text-zinc-400 font-semibold uppercase tracking-wider text-[11px]">
-                <th className="py-3 px-4"># / Nome</th>
-                <th className="py-3 px-4">Coordenadas (xx, yy)</th>
-                <th className="py-3 px-4">👑 Owner Principal</th>
+                <th className="py-3 px-4"># / Name</th>
+                <th className="py-3 px-4">Coordinates (x, y)</th>
+                <th className="py-3 px-4">👑 Primary Owner</th>
                 <th className="py-3 px-4">🛡️ Co-Owner</th>
                 <th className="py-3 px-4">⚡ Teleport (TP)</th>
-                <th className="py-3 px-4">Servidor / Mapa</th>
+                <th className="py-3 px-4">Server / Map</th>
                 <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Ações Rápidas</th>
+                <th className="py-3 px-4 text-right">Quick actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60">
@@ -408,7 +408,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
                     <button
                       onClick={() => onNavigateToRadar(rh.coords)}
                       className="px-2 py-1 rounded bg-zinc-950 border border-zinc-800 text-emerald-400 hover:border-emerald-500/50 flex items-center gap-1.5 transition text-[11px]"
-                      title="Ver este rathole no radar tático"
+                      title="Show this rathole on the tactical radar"
                     >
                       <MapPin className="w-3 h-3 text-emerald-500" />
                       ({rh.coords.x.toFixed(1)}, {rh.coords.y.toFixed(1)})
@@ -430,12 +430,12 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
                     <button
                       onClick={() => handleCopyTp(rh.tp)}
                       className="px-2.5 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition text-[11px]"
-                      title="Clique para copiar o comando de TP"
+                      title="Click to copy the TP command"
                     >
                       {copiedTp === rh.tp ? (
                         <>
                           <Check className="w-3 h-3 text-emerald-400" />
-                          <span>Copiado!</span>
+                          <span>Copied!</span>
                         </>
                       ) : (
                         <>
@@ -460,9 +460,9 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
                   <td className="py-3 px-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       <button
-                        onClick={() => onAskInDiscord(`A quem pertence o rathole ${rh.numero}?`)}
+                        onClick={() => onAskInDiscord(`Who owns rathole ${rh.numero}?`)}
                         className="p-1.5 rounded-lg bg-zinc-800 hover:bg-indigo-600 text-zinc-300 hover:text-white transition"
-                        title={`Perguntar ao TEKOli sobre o Rathole #${rh.numero}`}
+                        title={`Ask TEKOli about Rathole #${rh.numero}`}
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
                       </button>
@@ -470,7 +470,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
                       <button
                         onClick={() => onEditRathole(rh)}
                         className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition"
-                        title="Editar Rathole"
+                        title="Edit rathole"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -478,10 +478,10 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
                       <button
                         onClick={() => {
                           onDeleteRathole(rh.id);
-                          showToast(`🗑️ Rathole #${rh.numero} (${rh.name}) excluído.`);
+                          showToast(`🗑️ Rathole #${rh.numero} (${rh.name}) deleted.`);
                         }}
                         className="p-1.5 rounded-lg bg-zinc-800 hover:bg-rose-950 text-zinc-400 hover:text-rose-400 transition"
-                        title="Excluir Rathole"
+                        title="Delete rathole"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -493,7 +493,7 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-zinc-500">
-                    Nenhum rathole encontrado com os filtros atuais.
+                    No ratholes match the current filters.
                   </td>
                 </tr>
               )}
@@ -504,10 +504,10 @@ export const RatholeManager: React.FC<RatholeManagerProps> = ({
         {/* Footer info */}
         <div className="px-4 py-2.5 bg-zinc-950 border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-400">
           <span>
-            Exibindo <strong>{filtered.length}</strong> de <strong>{ratholes.length}</strong> ratholes
+            Showing <strong>{filtered.length}</strong> of <strong>{ratholes.length}</strong> ratholes
           </span>
           <span className="text-zinc-500 text-[11px]">
-            Sincronizado com MongoDB e pronto para queries em tempo real pelo bot TEKOli
+            Synced with MongoDB and ready for live TEKOli queries
           </span>
         </div>
       </div>

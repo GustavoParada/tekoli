@@ -1,21 +1,34 @@
-import React, { useState, useRef } from 'react';
+import React, { useLayoutEffect, useState, useRef } from 'react';
 import {
-  MapPin,
   Crosshair,
   Compass,
-  Zap,
-  Shield,
-  Eye,
   Copy,
   Check,
   MessageSquare,
-  AlertTriangle,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
 } from 'lucide-react';
 import { Rathole, RatholeStatus } from '../types/rathole';
-import { calculateDistance, findNearestRatholes } from '../utils/ratholeQuery';
+import { findNearestRatholes } from '../utils/ratholeQuery';
+import mapBackground from '../assets/tactical-map.jpg';
+
+/** Source image size and the fitted 0–100 grid printed on it. */
+const MAP_W = 1020;
+const MAP_H = 891;
+const LON_ORIGIN = 112.306;
+const LON_SCALE = 9.029;
+const LAT_ORIGIN = 5.486;
+const LAT_SCALE = 9.0325;
+
+type MapFrame = { left: number; top: number; width: number; height: number; cw: number; ch: number };
+
+function gameToPercent(x: number, y: number, frame: MapFrame) {
+  const px = LON_ORIGIN + x * LON_SCALE;
+  const py = LAT_ORIGIN + y * LAT_SCALE;
+  const absX = frame.left + (px / MAP_W) * frame.width;
+  const absY = frame.top + (py / MAP_H) * frame.height;
+  const left = frame.cw > 0 ? (absX / frame.cw) * 100 : 0;
+  const top = frame.ch > 0 ? (absY / frame.ch) * 100 : 0;
+  return { left: `${left}%`, top: `${top}%`, leftNum: left, topNum: top };
+}
 
 interface TacticalRadarMapProps {
   ratholes: Rathole[];
@@ -37,9 +50,39 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [radarMemberFilter, setRadarMemberFilter] = useState<'owner' | 'co_owner' | 'responsible'>('owner');
   const [showRadarLines, setShowRadarLines] = useState<boolean>(true);
-  const [zoom, setZoom] = useState<number>(1);
-
   const containerRef = useRef<HTMLDivElement>(null);
+  const [frame, setFrame] = useState<MapFrame>({ left: 0, top: 0, width: 1, height: 1, cw: 1, ch: 1 });
+
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const measure = () => {
+      const { width, height } = el.getBoundingClientRect();
+      if (width === 0 || height === 0) return;
+      const imgAspect = MAP_W / MAP_H;
+      const boxAspect = width / height;
+      let w: number;
+      let h: number;
+      let left: number;
+      let top: number;
+      if (boxAspect > imgAspect) {
+        h = height;
+        w = height * imgAspect;
+        left = (width - w) / 2;
+        top = 0;
+      } else {
+        w = width;
+        h = width / imgAspect;
+        left = 0;
+        top = (height - h) / 2;
+      }
+      setFrame({ left, top, width: w, height: h, cw: width, ch: height });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const coOwnerExtraCount = searchQuery.trim()
     ? ratholes.filter((rh) => {
@@ -80,12 +123,23 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
-    const pctX = Math.max(0, Math.min(100, (clickX / rect.width) * 100));
-    const pctY = Math.max(0, Math.min(100, (clickY / rect.height) * 100));
+    if (
+      clickX < frame.left ||
+      clickY < frame.top ||
+      clickX > frame.left + frame.width ||
+      clickY > frame.top + frame.height
+    ) {
+      return;
+    }
+
+    const px = ((clickX - frame.left) / frame.width) * MAP_W;
+    const py = ((clickY - frame.top) / frame.height) * MAP_H;
+    const gameX = (px - LON_ORIGIN) / LON_SCALE;
+    const gameY = (py - LAT_ORIGIN) / LAT_SCALE;
 
     setTargetCoords({
-      x: parseFloat(pctX.toFixed(1)),
-      y: parseFloat(pctY.toFixed(1)),
+      x: parseFloat(Math.max(0, Math.min(100, gameX)).toFixed(1)),
+      y: parseFloat(Math.max(0, Math.min(100, gameY)).toFixed(1)),
     });
     setActivePin(null);
   };
@@ -129,20 +183,20 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
             </div>
             <div>
               <h2 className="text-sm md:text-base font-bold text-white flex items-center gap-2">
-                Radar Tático de Coordenadas (0 a 100)
+                Tactical Coordinate Radar (0 to 100)
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  {ratholes.length} Bases Rastreadas
+                  {ratholes.length} Bases Tracked
                 </span>
               </h2>
               <p className="text-xs text-zinc-400">
-                Clique em qualquer ponto do mapa para buscar ratholes próximos e calcular distâncias
+                Click anywhere on the map. Pins use the same grid printed on the map.
               </p>
             </div>
           </div>
 
             {/* Quick presets */}
             <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-zinc-500 text-[11px] mr-1 hidden sm:inline">Pontos Rápidos:</span>
+              <span className="text-zinc-500 text-[11px] mr-1 hidden sm:inline">Quick points:</span>
               <button
                 onClick={() => setTargetCoords({ x: 14.9, y: 85.8 })}
                 className={`px-2.5 py-1 rounded-lg font-mono text-[11px] transition border ${
@@ -181,10 +235,10 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
               type="text"
               placeholder={
                 radarMemberFilter === 'owner'
-                  ? '👑 Filtrando mapa por OWNER (padrão)... ex: Clutch, Joey'
+                  ? '👑 Filtering the map by OWNER (default)... e.g. Clutch, Joey'
                   : radarMemberFilter === 'co_owner'
-                  ? '🛡️ Filtrando mapa apenas por CO-OWNER... ex: Joey'
-                  : '👥 Filtrando mapa por RESPONSÁVEL (Owner + Co-Owner)... ex: Joey'
+                  ? '🛡️ Filtering the map by CO-OWNER only... e.g. Joey'
+                  : '👥 Filtering the map by OWNER + CO-OWNER... e.g. Joey'
               }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -208,9 +262,9 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                   ? 'bg-amber-600 text-white shadow-sm'
                   : 'text-amber-400/80 hover:text-amber-300'
               }`}
-              title="Padrão: filtra apenas onde é Owner"
+              title="Default: only where they are the owner"
             >
-              👑 Owner (Padrão)
+              👑 Owner (Default)
             </button>
             <button
               onClick={() => setRadarMemberFilter('co_owner')}
@@ -219,9 +273,9 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-emerald-400/80 hover:text-emerald-300'
               }`}
-              title="Filtra apenas onde é Co-Owner"
+              title="Only where they are the co-owner"
             >
-              🛡️ Só Co-Owner
+              🛡️ Co-Owner only
             </button>
             <button
               onClick={() => setRadarMemberFilter('responsible')}
@@ -230,7 +284,7 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-indigo-400/80 hover:text-indigo-300'
               }`}
-              title="Filtra onde é Responsável (Owner ou Co-Owner)"
+              title="Where they are owner or co-owner"
             >
               👥 Owner + Co-Owner
             </button>
@@ -241,14 +295,14 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
         {radarMemberFilter === 'owner' && searchQuery.trim() && coOwnerExtraCount > 0 && (
           <div className="mb-3 px-3.5 py-2 bg-emerald-950/40 border border-emerald-500/30 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs">
             <span className="text-emerald-200">
-              🛡️ <strong>{searchQuery}</strong> também é Co-Owner em mais <strong>{coOwnerExtraCount}</strong> rathole(s). Quer ver como Co-Owner também?
+              🛡️ <strong>{searchQuery}</strong> is also Co-Owner on <strong>{coOwnerExtraCount}</strong> more rathole(s). Show those too?
             </span>
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setRadarMemberFilter('co_owner')}
                 className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition"
               >
-                Só Co-Owner ({coOwnerExtraCount})
+                Co-Owner only ({coOwnerExtraCount})
               </button>
               <button
                 onClick={() => setRadarMemberFilter('responsible')}
@@ -261,46 +315,29 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
         )}
 
         {/* Map Container */}
-        <div className="relative flex-1 min-h-[460px] md:min-h-[520px] bg-zinc-950 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center">
-          {/* Tactical Grid Background (0 - 100) */}
+        <div className="relative flex-1 min-h-[460px] md:min-h-[520px] bg-[#071820] border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
           <div
             ref={containerRef}
             onClick={handleMapClick}
-            className="relative w-full h-full cursor-crosshair select-none bg-[#0a0d14]"
-            style={{
-              backgroundImage: `
-                radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 70%),
-                linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-                linear-gradient(to right, rgba(99, 102, 241, 0.12) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(99, 102, 241, 0.12) 1px, transparent 1px)
-              `,
-              backgroundSize: '100% 100%, 10% 10%, 10% 10%, 20% 20%, 20% 20%',
-            }}
+            className="relative w-full h-full cursor-crosshair select-none"
           >
-            {/* Coordinate Axis Labels */}
-            <div className="absolute top-2 left-2 text-[10px] font-mono text-zinc-600 font-bold">
-              (0, 0) NOROESTE
-            </div>
-            <div className="absolute top-2 right-2 text-[10px] font-mono text-zinc-600 font-bold">
-              (100, 0) NORDESTE
-            </div>
-            <div className="absolute bottom-2 left-2 text-[10px] font-mono text-zinc-600 font-bold">
-              (0, 100) SUDOESTE
-            </div>
-            <div className="absolute bottom-2 right-2 text-[10px] font-mono text-zinc-600 font-bold">
-              (100, 100) SUDESTE
-            </div>
-
-            {/* Compass Rose in Corner */}
-            <div className="absolute bottom-4 right-4 pointer-events-none opacity-25">
-              <Compass className="w-16 h-16 text-indigo-400" />
-            </div>
+            <div
+              className="absolute pointer-events-none"
+              style={{
+                left: frame.left,
+                top: frame.top,
+                width: frame.width,
+                height: frame.height,
+                backgroundImage: `url(${mapBackground})`,
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+              }}
+            />
 
             {/* Target Crosshair / Radar Center */}
             <div
               className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 z-20"
-              style={{ left: `${targetCoords.x}%`, top: `${targetCoords.y}%` }}
+              style={{ left: gameToPercent(targetCoords.x, targetCoords.y, frame).left, top: gameToPercent(targetCoords.x, targetCoords.y, frame).top }}
             >
               {/* Radar pulse circles */}
               <div className="absolute -inset-10 rounded-full border border-indigo-500/40 animate-ping opacity-75" />
@@ -316,13 +353,16 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
             {/* SVG Connecting lines from target to 3 nearest ratholes */}
             {showRadarLines && (
               <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
-                {nearest.map((item, idx) => (
+                {nearest.map((item, idx) => {
+                  const from = gameToPercent(targetCoords.x, targetCoords.y, frame);
+                  const to = gameToPercent(item.rathole.coords.x, item.rathole.coords.y, frame);
+                  return (
                   <g key={item.rathole.id}>
                     <line
-                      x1={`${targetCoords.x}%`}
-                      y1={`${targetCoords.y}%`}
-                      x2={`${item.rathole.coords.x}%`}
-                      y2={`${item.rathole.coords.y}%`}
+                      x1={`${from.leftNum}%`}
+                      y1={`${from.topNum}%`}
+                      x2={`${to.leftNum}%`}
+                      y2={`${to.topNum}%`}
                       stroke={idx === 0 ? '#6366f1' : '#4f46e5'}
                       strokeWidth={idx === 0 ? '2' : '1.2'}
                       strokeDasharray="4 4"
@@ -331,8 +371,8 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                     />
                     {/* Distance label midpoint */}
                     <text
-                      x={`${(targetCoords.x + item.rathole.coords.x) / 2}%`}
-                      y={`${(targetCoords.y + item.rathole.coords.y) / 2}%`}
+                      x={`${(from.leftNum + to.leftNum) / 2}%`}
+                      y={`${(from.topNum + to.topNum) / 2}%`}
                       fill="#a5b4fc"
                       fontSize="10"
                       fontFamily="monospace"
@@ -342,7 +382,8 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                       {item.distance.toFixed(1)}m
                     </text>
                   </g>
-                ))}
+                  );
+                })}
               </svg>
             )}
 
@@ -365,7 +406,7 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                   className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-15 group transition-transform hover:scale-125 ${
                     isSelected ? 'scale-125 z-30' : ''
                   }`}
-                  style={{ left: `${rh.coords.x}%`, top: `${rh.coords.y}%` }}
+                  style={{ left: gameToPercent(rh.coords.x, rh.coords.y, frame).left, top: gameToPercent(rh.coords.x, rh.coords.y, frame).top }}
                 >
                   {/* Outer pulse if in raid or highlighted */}
                   {(rh.status === 'em_raid' || isHighlighted || isTopNearest) && (
@@ -406,7 +447,7 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
           {/* Map bottom toolbar */}
           <div className="absolute bottom-3 left-3 z-30 flex items-center gap-2 bg-zinc-900/90 backdrop-blur-md border border-zinc-700 px-3 py-1.5 rounded-xl text-xs text-zinc-300 shadow-xl">
             <span className="text-[11px] font-mono text-zinc-400">
-              Alvo Atual: <strong className="text-white">({targetCoords.x.toFixed(1)}, {targetCoords.y.toFixed(1)})</strong>
+              Target: <strong className="text-white">({targetCoords.x.toFixed(1)}, {targetCoords.y.toFixed(1)})</strong>
             </span>
             <span className="text-zinc-600">|</span>
             <label className="flex items-center gap-1.5 text-[11px] cursor-pointer hover:text-white">
@@ -416,7 +457,7 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                 onChange={(e) => setShowRadarLines(e.target.checked)}
                 className="rounded accent-indigo-600"
               />
-              Linhas de Proximidade
+              Proximity lines
             </label>
           </div>
         </div>
@@ -429,25 +470,25 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
           <div className="flex items-center gap-2">
             <Compass className="w-4 h-4 text-indigo-400" />
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              Painel de Proximidade
+              Proximity Panel
             </h3>
           </div>
           <button
             onClick={() => {
-              onAskInDiscord(`Qual os ratholes próximo de ${targetCoords.x}, ${targetCoords.y}?`);
+              onAskInDiscord(`What are the nearest ratholes to ${targetCoords.x}, ${targetCoords.y}?`);
             }}
             className="px-2.5 py-1 text-[11px] bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 rounded-lg flex items-center gap-1.5 transition font-medium"
-            title="Envia esta pergunta automaticamente para o TEKOli no simulador de Discord"
+            title="Sends this question to TEKOli in the Discord simulator"
           >
             <MessageSquare className="w-3 h-3" />
-            Perguntar ao TEKOli
+            Ask TEKOli
           </button>
         </div>
 
         {/* Selected or Nearest Summary */}
         <div className="p-3.5 bg-zinc-950/80 border border-zinc-800 rounded-xl mb-4">
           <div className="text-[11px] font-semibold text-zinc-400 mb-1 flex items-center justify-between">
-            <span>Coordenada de Referência:</span>
+            <span>Reference coordinate:</span>
             <span className="font-mono text-indigo-400 font-bold">
               ({targetCoords.x.toFixed(1)}, {targetCoords.y.toFixed(1)})
             </span>
@@ -455,11 +496,11 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
           <p className="text-xs text-zinc-300">
             {nearest.length > 0 ? (
               <>
-                O rathole mais próximo é o <strong className="text-white">#{nearest[0].rathole.numero}</strong> a{' '}
-                <strong className="text-emerald-400">{nearest[0].distance.toFixed(1)}m</strong> de distância.
+                The nearest rathole is <strong className="text-white">#{nearest[0].rathole.numero}</strong>,{' '}
+                <strong className="text-emerald-400">{nearest[0].distance.toFixed(1)}m</strong> away.
               </>
             ) : (
-              'Nenhum rathole encontrado.'
+              'No ratholes found.'
             )}
           </p>
         </div>
@@ -467,8 +508,8 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
         {/* Nearest Ratholes Cards */}
         <div className="space-y-3 flex-1">
           <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center justify-between">
-            <span>Mais Próximos do Ponto</span>
-            <span className="text-[10px] text-zinc-500 font-normal">Calculado via Euclidian 2D</span>
+            <span>Nearest to this point</span>
+            <span className="text-[10px] text-zinc-500 font-normal">2D Euclidean distance</span>
           </h4>
 
           {nearest.map((item, index) => {
@@ -522,7 +563,7 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                     <span className="text-zinc-300 text-[11px]">{rh.coOwner}</span>
                   </div>
                   <div className="flex items-center justify-between font-mono">
-                    <span className="text-zinc-500 text-[11px]">📍 Coordenadas:</span>
+                    <span className="text-zinc-500 text-[11px]">📍 Coordinates:</span>
                     <span className="text-emerald-400 text-[11px]">
                       ({rh.coords.x.toFixed(1)}, {rh.coords.y.toFixed(1)})
                     </span>
@@ -532,12 +573,12 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                     <button
                       onClick={(e) => handleCopyTp(rh.tp, e)}
                       className="px-2 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] flex items-center gap-1 transition"
-                      title="Copiar comando de TP"
+                      title="Copy TP command"
                     >
                       {copiedTp === rh.tp ? (
                         <>
                           <Check className="w-3 h-3 text-emerald-400" />
-                          <span>Copiado!</span>
+                          <span>Copied!</span>
                         </>
                       ) : (
                         <>
@@ -554,11 +595,11 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onAskInDiscord(`A quem pertence o rathole ${rh.numero}?`);
+                      onAskInDiscord(`Who owns rathole ${rh.numero}?`);
                     }}
                     className="text-[10px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 hover:underline font-medium"
                   >
-                    💬 Perguntar: "A quem pertence o rathole {rh.numero}?"
+                    💬 Ask: "Who owns rathole {rh.numero}?"
                   </button>
                   <span className="text-[10px] text-zinc-500 font-mono uppercase">
                     {rh.status}
@@ -571,27 +612,27 @@ export const TacticalRadarMap: React.FC<TacticalRadarMapProps> = ({
 
         {/* Legend */}
         <div className="mt-4 pt-3 border-t border-zinc-800">
-          <div className="text-[11px] font-semibold text-zinc-400 mb-2">Legenda de Cores:</div>
+          <div className="text-[11px] font-semibold text-zinc-400 mb-2">Color legend:</div>
           <div className="grid grid-cols-2 gap-2 text-[10px]">
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
-              <span className="text-zinc-300">Ocupado (Ativo)</span>
+              <span className="text-zinc-300">Occupied</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              <span className="text-zinc-300">Livre (Disponível)</span>
+              <span className="text-zinc-300">Open</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-              <span className="text-zinc-300">Em Raid (Perigo)</span>
+              <span className="text-zinc-300">Under raid</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-cyan-500" />
-              <span className="text-zinc-300">Aliado</span>
+              <span className="text-zinc-300">Ally</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-teal-500" />
-              <span className="text-zinc-300">Builded</span>
+              <span className="text-zinc-300">Built</span>
             </div>
           </div>
         </div>

@@ -144,7 +144,7 @@ export const BotCodeExporter: React.FC<BotCodeExporterProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm md:text-base font-bold text-white">
-                  Status Real no Discord (Gateway)
+                  Live Discord status (Gateway)
                 </h3>
                 {botStatus?.online ? (
                   <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
@@ -152,16 +152,16 @@ export const BotCodeExporter: React.FC<BotCodeExporterProps> = ({
                   </span>
                 ) : (
                   <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40">
-                    🔴 OFFLINE NO DISCORD
+                    🔴 OFFLINE ON DISCORD
                   </span>
                 )}
               </div>
               <p className="text-xs text-zinc-400 mt-0.5">
                 {botStatus?.online
-                  ? `Conectado em ${botStatus.guildsCount} servidor(es) • ${botStatus.ratholesCount} ratholes carregados (${botStatus.mongoConnected ? 'MongoDB Atlas' : 'Memória Local'})`
+                  ? `Connected to ${botStatus.guildsCount} server(s) • ${botStatus.ratholesCount} ratholes loaded (${botStatus.mongoConnected ? 'MongoDB Atlas' : 'local memory'})`
                   : botStatus?.configured
-                  ? 'Token detectado, aguardando conexão com Discord Gateway...'
-                  : 'O servidor web está publicado, mas falta o DISCORD_TOKEN para logar o bot no Discord.'}
+                  ? 'Token found, waiting for the Discord gateway...'
+                  : 'The web server is up, but DISCORD_TOKEN is missing so the bot cannot log in.'}
               </p>
             </div>
           </div>
@@ -171,7 +171,7 @@ export const BotCodeExporter: React.FC<BotCodeExporterProps> = ({
             className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-zinc-700 shrink-0 self-start md:self-auto"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-            Atualizar Status
+            Refresh status
           </button>
         </div>
 
@@ -180,7 +180,7 @@ export const BotCodeExporter: React.FC<BotCodeExporterProps> = ({
           <div className="mt-4 p-3.5 rounded-xl bg-rose-950/50 border border-rose-500/40 flex items-start gap-2.5 text-xs text-rose-200">
             <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
             <div>
-              <strong className="block text-rose-300 mb-0.5">Erro reportado pelo Discord:</strong>
+              <strong className="block text-rose-300 mb-0.5">Error reported by Discord:</strong>
               {botStatus.lastError}
             </div>
           </div>
@@ -195,36 +195,36 @@ export const BotCodeExporter: React.FC<BotCodeExporterProps> = ({
               ) : (
                 <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
               )}
-              1. Configurar DISCORD_TOKEN nos Secrets
+              1. Set DISCORD_TOKEN in Secrets
             </div>
             <p className="text-zinc-400 leading-relaxed">
-              No painel <strong>Secrets</strong> (variáveis de ambiente) do AI Studio, crie a variável{' '}
-              <code className="px-1.5 py-0.5 bg-zinc-800 text-indigo-300 rounded">DISCORD_TOKEN</code> com o token gerado em{' '}
-              <em>Discord Developer Portal &rarr; Bot &rarr; Reset Token</em>. Sem esse token, o servidor não consegue logar no Discord e o bot fica offline.
+              In the AI Studio <strong>Secrets</strong> panel, create{' '}
+              <code className="px-1.5 py-0.5 bg-zinc-800 text-indigo-300 rounded">DISCORD_TOKEN</code> with the token from{' '}
+              <em>Discord Developer Portal &rarr; Bot &rarr; Reset Token</em>. Without it, the server cannot log in and the bot stays offline.
             </p>
           </div>
 
           <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-2">
             <div className="font-bold text-white flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-              2. Ativar "Message Content Intent" no Portal
+              2. Enable Message Content Intent in the portal
             </div>
             <p className="text-zinc-400 leading-relaxed">
-              No <strong>Discord Developer Portal &rarr; Bot &rarr; Privileged Gateway Intents</strong>, ative obrigatoriamente{' '}
-              <strong className="text-emerald-300">MESSAGE CONTENT INTENT</strong> e{' '}
-              <strong className="text-emerald-300">SERVER MEMBERS INTENT</strong>. Sem isso, o bot não lê mensagens no chat.
+              In <strong>Discord Developer Portal &rarr; Bot &rarr; Privileged Gateway Intents</strong>, turn on{' '}
+              <strong className="text-emerald-300">MESSAGE CONTENT INTENT</strong> and{' '}
+              <strong className="text-emerald-300">SERVER MEMBERS INTENT</strong>. Without them, the bot cannot read chat messages.
             </p>
           </div>
 
           <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-2">
             <div className="font-bold text-white flex items-center gap-2">
               <Server className="w-4 h-4 text-indigo-400 shrink-0" />
-              3. Permissões & Convite OAuth2
+              3. Permissions and OAuth2 invite
             </div>
             <p className="text-zinc-400 leading-relaxed">
-              Em <strong>OAuth2 &rarr; URL Generator</strong>, marque os scopes{' '}
-              <code className="px-1 bg-zinc-800 text-indigo-300 rounded">bot</code> e{' '}
-              <code className="px-1 bg-zinc-800 text-indigo-300 rounded">applications.commands</code>, com permissões de{' '}
+              In <strong>OAuth2 &rarr; URL Generator</strong>, select the scopes{' '}
+              <code className="px-1 bg-zinc-800 text-indigo-300 rounded">bot</code> and{' '}
+              <code className="px-1 bg-zinc-800 text-indigo-300 rounded">applications.commands</code>, with permissions{' '}
               <em>View Channels, Send Messages, Embed Links, Read Message History</em>.
             </p>
           </div>
@@ -232,10 +232,10 @@ export const BotCodeExporter: React.FC<BotCodeExporterProps> = ({
           <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800/80 space-y-2">
             <div className="font-bold text-white flex items-center gap-2">
               <Terminal className="w-4 h-4 text-cyan-400 shrink-0" />
-              4. Manter Online 24/7 ou Religar por Request
+              4. Stay online 24/7 or wake on request
             </div>
             <p className="text-zinc-400 leading-relaxed">
-              O servidor do AI Studio (Cloud Run) hiberna após ~15 min sem tráfego HTTP e fecha o WebSocket do Discord. Para evitar ou religar automaticamente:
+              The AI Studio server (Cloud Run) sleeps after about 15 minutes without HTTP traffic and drops the Discord websocket. Use one of these to stay up or wake it:
             </p>
             <div className="space-y-1.5 pt-1">
               <div className="flex items-center justify-between gap-2 bg-zinc-900 px-2.5 py-1.5 rounded-lg border border-zinc-800">
@@ -247,14 +247,14 @@ export const BotCodeExporter: React.FC<BotCodeExporterProps> = ({
                   onClick={() => handleCopyEndpoint('ping', pingUrl)}
                   className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-[10px] text-zinc-200 shrink-0"
                 >
-                  {copiedEndpoint === 'ping' ? 'Copiado!' : 'Copiar'}
+                  {copiedEndpoint === 'ping' ? 'Copied!' : 'Copy'}
                 </button>
               </div>
 
               <div className="flex items-center justify-between gap-2 bg-zinc-900 px-2.5 py-1.5 rounded-lg border border-zinc-800">
                 <div className="min-w-0">
                   <div className="text-[10px] font-bold text-indigo-400">
-                    Interactions URL (Religa ao usar /rathole){botStatus?.publicKeyConfigured ? ' ✓' : ''}
+                    Interactions URL (wakes when /rathole is used){botStatus?.publicKeyConfigured ? ' ✓' : ''}
                   </div>
                   <div className="text-[10px] font-mono text-zinc-300 truncate">{interactionsUrl}</div>
                 </div>
@@ -262,12 +262,12 @@ export const BotCodeExporter: React.FC<BotCodeExporterProps> = ({
                   onClick={() => handleCopyEndpoint('interactions', interactionsUrl)}
                   className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-[10px] text-zinc-200 shrink-0"
                 >
-                  {copiedEndpoint === 'interactions' ? 'Copiado!' : 'Copiar'}
+                  {copiedEndpoint === 'interactions' ? 'Copied!' : 'Copy'}
                 </button>
               </div>
             </div>
             <p className="text-[11px] text-zinc-500 leading-relaxed">
-              Obs.: se o link publicado exigir login Google, pings externos serão bloqueados — nesse caso, para 100% online 24/7 sem hibernação, baixe o <strong>.ZIP</strong> e rode na <em>Discloud, SquareCloud, Railway ou VPS</em>.
+              If the published link requires a Google login, external pings are blocked. For 24/7 uptime with no sleep, download the <strong>.ZIP</strong> and run it on <em>Discloud, SquareCloud, Railway, or a VPS</em>.
             </p>
           </div>
         </div>
@@ -281,13 +281,13 @@ export const BotCodeExporter: React.FC<BotCodeExporterProps> = ({
           </div>
           <div>
             <h2 className="text-base md:text-lg font-bold text-white flex items-center gap-2">
-              Código Completo do Bot TEKOli (Node.js & MongoDB)
+              Full TEKOli bot source (Node.js & MongoDB)
               <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-mono">
                 Discord.js v14
               </span>
             </h2>
             <p className="text-xs text-zinc-300">
-              Inclui suporte a Slash Commands, inglês preferencial, filtro estrito por Owner e oferta de Co-Owner.
+              Includes slash commands, English as the preferred language, a strict owner filter, and co-owner suggestions.
             </p>
           </div>
         </div>
@@ -299,7 +299,7 @@ export const BotCodeExporter: React.FC<BotCodeExporterProps> = ({
           className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:opacity-50 text-white font-semibold rounded-xl text-xs flex items-center gap-2 transition shadow-lg shadow-indigo-600/30 shrink-0"
         >
           <Archive className="w-4 h-4" />
-          {downloadingZip ? 'Gerando Pacote...' : 'Baixar Projeto Completo (.ZIP)'}
+          {downloadingZip ? 'Building package...' : 'Download full project (.ZIP)'}
         </button>
       </div>
 
@@ -335,12 +335,12 @@ export const BotCodeExporter: React.FC<BotCodeExporterProps> = ({
             {copied ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-emerald-400 font-semibold">Copiado!</span>
+                <span className="text-emerald-400 font-semibold">Copied!</span>
               </>
             ) : (
               <>
                 <Copy className="w-3.5 h-3.5" />
-                <span>Copiar Arquivo</span>
+                <span>Copy file</span>
               </>
             )}
           </button>
@@ -355,10 +355,10 @@ export const BotCodeExporter: React.FC<BotCodeExporterProps> = ({
         <div className="px-4 py-3 bg-zinc-950 border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-400">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>Compatível com Node.js 18+ e Mongoose 8+</span>
+            <span>Works with Node.js 18+ and Mongoose 8+</span>
           </div>
           <span className="text-zinc-500 text-[11px]">
-            Inclui Slash Commands, cálculo euclidiano 2D e filtro padrão por Owner
+            Includes slash commands, 2D Euclidean distance, and the default owner filter
           </span>
         </div>
       </div>

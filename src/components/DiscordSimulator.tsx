@@ -49,9 +49,9 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [copiedTp, setCopiedTp] = useState<string | null>(null);
-  const [activeChannel, setActiveChannel] = useState<'ratholes-intel' | 'geral' | 'bot-comandos'>('ratholes-intel');
+  const [activeChannel, setActiveChannel] = useState<'ratholes-intel' | 'general' | 'bot-commands'>('ratholes-intel');
   const [showMembers, setShowMembers] = useState(true);
-  const [botLanguage, setBotLanguage] = useState<'auto' | 'en' | 'pt' | 'fr'>('auto');
+  const [botLanguage, setBotLanguage] = useState<'auto' | 'en' | 'pt' | 'fr'>('en');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -76,11 +76,11 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
         name: 'Gustavo Parada',
         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
         isBot: false,
-        role: 'Líder do Clã',
+        role: 'Clan Leader',
         color: '#f59e0b',
       },
       content: text,
-      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     };
 
     setMessages((prev) => [...prev, userMsg]);
@@ -178,12 +178,12 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
           avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80',
           isBot: true,
           tag: 'BOT',
-          role: 'Bot Oficial',
+          role: 'Official Bot',
           color: '#5865F2',
         },
         content: botContent,
         embed: botEmbed,
-        timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       };
 
       setMessages((prev) => [...prev, botMsg]);
@@ -220,33 +220,31 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
           avatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80',
           isBot: true,
           tag: 'BOT',
-          role: 'Bot Oficial',
+          role: 'Official Bot',
           color: '#5865F2',
         },
         content:
           '👋 Greetings warriors! I am **TEKOli**, your official tactical clan bot connected to MongoDB.\n\nI speak fluent **English** (preferred), **Português**, and other languages! Ask me anything about our ratholes: who owns them, TPs, exact coordinates, or nearest ratholes to any point (xx,yy)!',
-        timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
   };
 
   const quickPrompts = [
     '@TekOli How should we defend rathole 3?',
-    '@TekOli À qui appartient le rathole 3 ?',
+    '@TekOli Who owns rathole 3?',
     '@TekOli Which ratholes are underwater?',
     '@TekOli update status to "builded" for rathole 59',
-    '@TekOli Who owns rathole 3?',
     '@TekOli Nearest ratholes to 12, 20',
     '@TekOli Good morning!',
-    'Bonjour!',
+    'Hello!',
     'Joey',
     'co-owner Joey',
     'responsible Joey',
     'owner Clutch',
     'What is the TP for rathole 1?',
     'Free ratholes',
-    'Bom dia!',
-    'A quem pertence o rathole 3?',
+    'Who is the co-owner of rathole 3?',
     '/help',
   ];
 
@@ -258,7 +256,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
         <div className="h-12 px-4 border-b border-[#1f2023] flex items-center justify-between font-bold text-white shadow-sm hover:bg-[#35373c] transition cursor-pointer">
           <div className="flex items-center gap-2 truncate">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
-            <span className="text-sm font-semibold truncate">CLÃ ALPHAS • ARK #104</span>
+            <span className="text-sm font-semibold truncate">ALPHA CLAN • ARK #104</span>
           </div>
           <span className="text-xs text-zinc-400">▼</span>
         </div>
@@ -267,7 +265,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
         <div className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
           <div>
             <div className="px-2 text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-              CANAIS DE TEXTO
+              TEXT CHANNELS
             </div>
             <div className="space-y-0.5">
               <button
@@ -286,47 +284,47 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
               </button>
 
               <button
-                onClick={() => setActiveChannel('bot-comandos')}
+                onClick={() => setActiveChannel('bot-commands')}
                 className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm font-medium transition ${
-                  activeChannel === 'bot-comandos'
+                  activeChannel === 'bot-commands'
                     ? 'bg-[#35373c] text-white'
                     : 'text-zinc-400 hover:bg-[#35373c]/50 hover:text-zinc-200'
                 }`}
               >
                 <Hash className="w-4 h-4 text-zinc-400 shrink-0" />
-                <span className="truncate">🤖-bot-comandos</span>
+                <span className="truncate">🤖-bot-commands</span>
               </button>
 
               <button
-                onClick={() => setActiveChannel('geral')}
+                onClick={() => setActiveChannel('general')}
                 className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm font-medium transition ${
-                  activeChannel === 'geral'
+                  activeChannel === 'general'
                     ? 'bg-[#35373c] text-white'
                     : 'text-zinc-400 hover:bg-[#35373c]/50 hover:text-zinc-200'
                 }`}
               >
                 <Hash className="w-4 h-4 text-zinc-400 shrink-0" />
-                <span className="truncate">💬-geral</span>
+                <span className="truncate">💬-general</span>
               </button>
             </div>
           </div>
 
           <div>
             <div className="px-2 text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
-              STATUS DA BASE MONGODB
+              MONGODB STATUS
             </div>
             <div className="px-3 py-2.5 bg-[#1e1f22]/70 rounded-lg text-xs space-y-1.5 border border-zinc-800/60">
               <div className="flex items-center justify-between text-zinc-300">
-                <span>Ratholes Ativos:</span>
+                <span>Active ratholes:</span>
                 <strong className="text-emerald-400 font-mono">{ratholes.length}</strong>
               </div>
               <div className="flex items-center justify-between text-zinc-300">
-                <span>Coleção:</span>
+                <span>Collection:</span>
                 <code className="text-indigo-300 font-mono text-[11px]">ratholes</code>
               </div>
               <div className="flex items-center gap-1.5 text-[10px] text-zinc-400 pt-1 border-t border-zinc-800">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                TEKOli Online & Monitorando
+                TEKOli online and watching
               </div>
             </div>
           </div>
@@ -345,14 +343,14 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
             </div>
             <div className="text-xs">
               <div className="font-semibold text-white truncate max-w-[90px]">Gustavo Parada</div>
-              <div className="text-[10px] text-amber-400">#0001 • Líder</div>
+              <div className="text-[10px] text-amber-400">#0001 • Leader</div>
             </div>
           </div>
 
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
             className="p-1.5 text-zinc-400 hover:text-white rounded hover:bg-[#35373c] transition"
-            title={soundEnabled ? 'Silenciar som do Discord' : 'Ativar som do Discord'}
+            title={soundEnabled ? 'Mute Discord sound' : 'Enable Discord sound'}
           >
             {soundEnabled ? <Volume2 className="w-4 h-4 text-indigo-400" /> : <VolumeX className="w-4 h-4" />}
           </button>
@@ -370,7 +368,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
             </h3>
             <span className="text-zinc-600 hidden md:inline">|</span>
             <p className="text-xs text-zinc-400 truncate hidden md:inline">
-              Pergunte ao @TEKOli sobre donos, TPs, coordenadas e ratholes próximos (xx,yy)
+              Ask @TEKOli about owners, TPs, coordinates, and nearby ratholes (x, y)
             </p>
           </div>
 
@@ -382,7 +380,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
                 value={botLanguage}
                 onChange={(e) => setBotLanguage(e.target.value as any)}
                 className="bg-transparent text-[11px] font-semibold text-zinc-200 hover:text-white focus:outline-none cursor-pointer"
-                title="Idioma preferencial do Bot TEKOli"
+                title="TEKOli preferred language"
               >
                 <option value="auto" className="bg-[#232428] text-white">🌐 Auto-Detect (EN Default)</option>
                 <option value="en" className="bg-[#232428] text-white">🇬🇧 English (Preferred)</option>
@@ -394,16 +392,16 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
             <button
               onClick={() => onNavigateToRadar({ x: 12.0, y: 20.0 })}
               className="px-2.5 py-1 text-xs bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-md flex items-center gap-1.5 transition border border-indigo-500/40"
-              title="Abrir mapa de coordenadas táticas"
+              title="Open the tactical coordinate map"
             >
               <Compass className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Radar Tático</span>
+              <span className="hidden sm:inline">Tactical Radar</span>
             </button>
 
             <button
               onClick={handleClearChat}
               className="p-1.5 text-zinc-400 hover:text-rose-400 rounded hover:bg-[#35373c] transition"
-              title="Limpar histórico do chat"
+              title="Clear chat history"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -414,7 +412,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
         <div className="px-4 py-2 bg-[#2b2d31]/80 border-b border-[#1f2023]/60 flex items-center gap-1.5 overflow-x-auto text-xs shrink-0 no-scrollbar">
           <span className="text-[11px] font-bold text-zinc-400 shrink-0 flex items-center gap-1 mr-1">
             <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-            Sugestões Rápidas:
+            Quick prompts:
           </span>
           {quickPrompts.map((prompt, i) => (
             <button
@@ -524,15 +522,15 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
                           className="px-2.5 py-1 rounded bg-[#35373c] hover:bg-[#404249] text-xs text-zinc-200 flex items-center gap-1.5 transition font-medium"
                         >
                           <Compass className="w-3.5 h-3.5 text-indigo-400" />
-                          Visualizar no Radar
+                          View on radar
                         </button>
 
                         <button
-                          onClick={() => handleSendMessage('Qual os ratholes próximo de 12,20?')}
+                          onClick={() => handleSendMessage('Nearest ratholes to 12, 20')}
                           className="px-2.5 py-1 rounded bg-[#35373c] hover:bg-[#404249] text-xs text-zinc-300 hover:text-white flex items-center gap-1.5 transition"
                         >
                           <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                          Ver próximos de (12, 20)
+                          Nearby (12, 20)
                         </button>
                       </div>
 
@@ -558,7 +556,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.2s]" />
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.4s]" />
               </div>
-              <strong className="text-white">TEKOli</strong> está consultando o MongoDB e digitando...
+              <strong className="text-white">TEKOli</strong> is checking MongoDB and typing...
             </div>
           )}
 
@@ -580,7 +578,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
 
             <input
               type="text"
-              placeholder="Conversar com @TEKOli (Ex: A quem pertence o rathole 3? ou /rathole proximo 12 20)..."
+              placeholder="Talk to @TEKOli (e.g. Who owns rathole 3? or nearest ratholes to 12, 20)..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               className="flex-1 bg-transparent text-sm text-white placeholder-zinc-400 focus:outline-none"
@@ -590,7 +588,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
               type="submit"
               disabled={!inputText.trim() || isTyping}
               className="p-1.5 bg-[#5865F2] hover:bg-[#4752c4] disabled:opacity-30 disabled:hover:bg-[#5865F2] text-white rounded-lg transition shrink-0"
-              title="Enviar mensagem"
+              title="Send message"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -598,12 +596,12 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
 
           <div className="flex items-center justify-between text-[11px] text-zinc-400 px-2 mt-1.5">
             <div>
-              Dica: Experimente perguntar <strong className="text-zinc-300">"a quem pertence o rathole 3"</strong> ou{' '}
-              <strong className="text-zinc-300">"qual os ratholes proximo de 12,20"</strong>.
+              Tip: try <strong className="text-zinc-300">"who owns rathole 3"</strong> or{' '}
+              <strong className="text-zinc-300">"nearest ratholes to 12, 20"</strong>.
             </div>
             <div className="flex items-center gap-1.5 text-emerald-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              MongoDB + Gemini IA Ativo
+              MongoDB + Gemini AI active
             </div>
           </div>
         </div>
@@ -634,7 +632,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
                   </span>
                 </div>
                 <div className="text-[10px] text-zinc-400 truncate">
-                  Jogando <strong>ARK: Radar</strong>
+                  Playing <strong>ARK: Radar</strong>
                 </div>
               </div>
             </div>
@@ -643,7 +641,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
           {/* Leaders */}
           <div className="mb-4">
             <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-2">
-              LÍDERES / ADMINS — 2
+              LEADERS / ADMINS — 2
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-[#35373c] transition cursor-pointer">
@@ -670,7 +668,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({
           {/* Members */}
           <div>
             <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-2">
-              MEMBROS DA TRIBO — 8
+              TRIBE MEMBERS — 8
             </div>
             <div className="space-y-1">
               {[

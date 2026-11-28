@@ -102,13 +102,13 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
             </div>
             <div>
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                {initialData ? `Editar Rathole #${initialData.numero}` : 'Cadastrar Novo Rathole'}
+                {initialData ? `Edit Rathole #${initialData.numero}` : 'Add a new rathole'}
                 <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
                   MongoDB Ready
                 </span>
               </h3>
               <p className="text-xs text-zinc-400">
-                O bot TEKOli responderá perguntas de dono, TP e proximidade com base nestes dados.
+                TEKOli answers owner, TP, and proximity questions from this data.
               </p>
             </div>
           </div>
@@ -126,7 +126,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
             <div>
               <label className="block text-xs font-semibold text-zinc-300 mb-1 flex items-center gap-1.5">
                 <Hash className="w-3.5 h-3.5 text-indigo-400" />
-                Número do Rathole
+                Rathole number
               </label>
               <input
                 type="number"
@@ -139,12 +139,12 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
             </div>
             <div className="md:col-span-2">
               <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                Nome Identificador / Apelido Tático
+                Name / tactical nickname
               </label>
               <input
                 type="text"
                 required
-                placeholder="Ex: Fenda da Cachoeira Central"
+                placeholder="e.g. Central waterfall crack"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-indigo-500 text-sm"
@@ -157,7 +157,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-emerald-400" />
-                Coordenadas Táticas (Latitude / Longitude: 0.0 a 100.0)
+                Map coordinates (0.0 to 100.0) — same grid as the radar map
               </span>
               <span className="text-xs text-zinc-400 font-mono">
                 GPS: ({Number(coordX).toFixed(1)}, {Number(coordY).toFixed(1)})
@@ -165,7 +165,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">Coordenada X (Latitude):</label>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1">X — left to right (top numbers):</label>
                 <input
                   type="number"
                   step="0.1"
@@ -178,7 +178,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-mono text-zinc-400 mb-1">Coordenada Y (Longitude):</label>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1">Y — top to bottom (left numbers):</label>
                 <input
                   type="number"
                   step="0.1"
@@ -197,7 +197,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                👑 Owner Principal (Dono)
+                👑 Primary owner
               </label>
               <input
                 type="text"
@@ -210,7 +210,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
             </div>
             <div>
               <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                🛡️ Co-Owner (Segundo Dono / Parceiro)
+                🛡️ Co-owner (partner)
               </label>
               <input
                 type="text"
@@ -227,7 +227,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 text-amber-400" />
-                Teleport (TP / Nome da Cama / Comando)
+                Teleport (TP / bed name / command)
               </label>
               <div className="flex items-center gap-2">
                 <button
@@ -235,7 +235,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
                   onClick={() => fillAutoTp('code')}
                   className="text-[11px] text-zinc-400 hover:text-indigo-400 hover:underline"
                 >
-                  Usar TP-RH-{numero}
+                  Use TP-RH-{numero}
                 </button>
                 <span className="text-zinc-600">•</span>
                 <button
@@ -243,14 +243,14 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
                   onClick={() => fillAutoTp('command')}
                   className="text-[11px] text-zinc-400 hover:text-indigo-400 hover:underline"
                 >
-                  Usar /tp X Y
+                  Use /tp X Y
                 </button>
               </div>
             </div>
             <input
               type="text"
               required
-              placeholder="Ex: TP-RH-03 ou /tp 12.4 20.2 ou Cama_Rathole3"
+              placeholder="e.g. TP-RH-03 or /tp 12.4 20.2 or Bed_Rathole3"
               value={tp}
               onChange={(e) => setTp(e.target.value)}
               className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-amber-300 font-mono text-sm focus:outline-none focus:border-amber-500"
@@ -262,7 +262,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
             <div>
               <label className="block text-xs font-semibold text-zinc-300 mb-1 flex items-center gap-1.5">
                 <Server className="w-3.5 h-3.5 text-zinc-400" />
-                Servidor / Mapa
+                Server / map
               </label>
               <input
                 type="text"
@@ -274,18 +274,18 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1">Status Operacional</label>
+              <label className="block text-xs font-semibold text-zinc-300 mb-1">Status</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as RatholeStatus)}
                 className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500"
               >
-                <option value="ocupado">🔒 Ocupado (Ativo)</option>
-                <option value="Builded">🏗️ Builded</option>
-                <option value="livre">🟢 Livre (Vago)</option>
-                <option value="aliado">🛡️ Aliado</option>
-                <option value="em_raid">🚨 Em Raid (Alerta)</option>
-                <option value="reserva">📦 Reserva / Backup</option>
+                <option value="ocupado">🔒 Occupied</option>
+                <option value="Builded">🏗️ Built</option>
+                <option value="livre">🟢 Open</option>
+                <option value="aliado">🛡️ Ally</option>
+                <option value="em_raid">🚨 Under raid</option>
+                <option value="reserva">📦 Reserve / backup</option>
                 {!['ocupado', 'Builded', 'livre', 'aliado', 'em_raid', 'reserva'].includes(status) && (
                   <option value={status}>🏷️ {status}</option>
                 )}
@@ -293,7 +293,7 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1">Heavy Turrets Ativas</label>
+              <label className="block text-xs font-semibold text-zinc-300 mb-1">Active heavy turrets</label>
               <input
                 type="number"
                 min="0"
@@ -308,11 +308,11 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
           <div>
             <label className="block text-xs font-semibold text-zinc-300 mb-1 flex items-center gap-1.5">
               <FileText className="w-3.5 h-3.5 text-zinc-400" />
-              Notas Táticas, Acesso & Defesa
+              Tactical notes, access & defense
             </label>
             <textarea
               rows={2}
-              placeholder="Ex: Entrada agachado atrás da cachoeira. Manter gerador com gasolina. Levar Cryopod."
+              placeholder="e.g. Crouch in behind the waterfall. Keep the generator fueled. Bring a cryopod."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white text-sm focus:outline-none focus:border-indigo-500 resize-none"
@@ -325,14 +325,14 @@ export const RatholeModal: React.FC<RatholeModalProps> = ({
               onClick={onClose}
               className="px-4 py-2 text-sm text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition"
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
               className="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-lg shadow-lg shadow-indigo-600/30 transition flex items-center gap-2"
             >
               <Sparkles className="w-4 h-4" />
-              Salvar no Banco
+              Save to database
             </button>
           </div>
         </form>
