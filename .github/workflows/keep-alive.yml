@@ -1,0 +1,22 @@
+# Pings the Azure App Service so the free plan does not unload the process.
+# Discord's gateway connection does not count as HTTP traffic, and a stopped
+# process stays "online" in Discord for a short while without reading messages.
+
+name: Keep TEKOli awake
+
+on:
+  schedule:
+    # Every 5 minutes. Azure free idles after about 20 minutes without a request.
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping Azure health endpoint
+        run: |
+          curl --fail-with-body --show-error --silent --retry 2 --retry-all-errors --retry-delay 10 --max-time 150 \
+            "https://tekoli-c7awdjdrg4czchd5.spaincentral-01.azurewebsites.net/api/ping"
+          echo
